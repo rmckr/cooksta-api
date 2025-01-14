@@ -1,0 +1,66 @@
+image: docker:20
+services:
+  - docker:20-dind
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+  DOCKER_REGISTRY_IMAGE: $CI_REGISTRY_IMAGE
+
+.default_rules:
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - "**/*"
+        - "!README.md"
+        - "!openapi.yaml"
+        - "!.gitlab-ci.yml"
+        - "!eslint.config.mjs"
+
+stages:
+  - build
+  - push
+
+before_script:
+  - echo "Logging in to container registry..."
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+build_express:
+  stage: build
+  script:
+    - echo "Building express image..."
+    - docker build -t $DOCKER_REGISTRY_IMAGE/express:$CI_COMMIT_REF_NAME -f express.Dockerfile .
+    - echo "express image built successfully."
+  rules:
+    - !reference [.default_rules, rules]
+
+build_mongodb:
+  stage: build
+  script:
+    - echo "Building mongodb image..."
+    - docker build -t $DOCKER_REGISTRY_IMAGE/mongodb:$CI_COMMIT_REF_NAME -f mongodb.Dockerfile .
+    - echo "mongodb image built successfully."
+  rules:
+    - !reference [.default_rules, rules]
+
+push_express:
+  stage: push
+  needs:
+    - build_express
+  script:
+    - echo "Pushing express image to registry..."
+    - docker push $DOCKER_REGISTRY_IMAGE/express:$CI_COMMIT_REF_NAME
+    - echo "express image pushed successfully."
+  rules:
+    - !reference [.default_rules, rules]
+
+push_mongodb:
+  stage: push
+  needs:
+    - build_mongodb
+  script:
+    - echo "Pushing mongodb image to registry..."
+    - docker push $DOCKER_REGISTRY_IMAGE/mongodb:$CI_COMMIT_REF_NAME
+    - echo "mongodb image pushed successfully."
+  rules:
+    - !reference [.default_rules, rules]
