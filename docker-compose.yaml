@@ -1,0 +1,21 @@
+name: cooksta-api
+services:
+  mongodb:
+    container_name: mongodb
+    image: mongodb/mongodb-community-server:7.0.7-ubuntu2204
+    ports:
+      - "1234:27017"
+    environment:
+      - MONGODB_INITDB_DATABASE=cooksta
+      - MONGODB_INITDB_ROOT_USERNAME=root
+      - MONGODB_INITDB_ROOT_PASSWORD=rootPW
+    volumes:
+      - ./mongodb-init.js:/docker-entrypoint-initdb.d/mongodb-init.js:ro
+
+  express:
+    container_name: express
+    build: .
+    ports:
+      - "9000:3000"
+    depends_on:
+      - mongodb

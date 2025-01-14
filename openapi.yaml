@@ -1,0 +1,251 @@
+openapi: 3.0.1
+info:
+  title: Cooksta API
+  description: API for managing users and their avatars in Cooksta.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: dev
+  - url: http://localhost:9000
+    description: docker
+
+paths:
+  /api/users/search/{query}:
+    get:
+      summary: Search for users by username.
+      parameters:
+        - name: query
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The username or part of the username to search for.
+      responses:
+        '200':
+          description: A list of matching users.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    username:
+                      type: string
+        '500':
+          description: Server error.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+  /api/users/{userId}/avatar:
+    get:
+      summary: Get a user's avatar.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            description: The ID of the user.
+      responses:
+        '200':
+          description: The avatar image.
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+        '500':
+          description: Server error.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+  /api/users/{userId}:
+    get:
+      summary: Get a user's details.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the user.
+      responses:
+        '200':
+          description: The user details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '500':
+          description: Server error.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+
+    put:
+      summary: Replace a user's details.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the user.
+      responses:
+        '200':
+          description: The updated user ID.
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Server error.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+    patch:
+      summary: Update parts of a user's details.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartialUser'
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the user.
+      responses:
+        '200':
+          description: The updated user details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '500':
+          description: Server error.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+    delete:
+      summary: Delete a user.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the user.
+      responses:
+        '204':
+          description: User deleted.
+        '500':
+          description: Server error.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+  /api/users/:
+    post:
+      summary: Create a new user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+                  description: The user's avatar image.
+                user:
+                  $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: The created user details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '500':
+          description: Server error.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+    User:
+      type: object
+      required:
+        - username
+        - passwordHash
+        - biography
+      properties:
+        id:
+          type: string
+          description: User ID.
+        username:
+          type: string
+          description: Username.
+        passwordHash:
+          type: string
+          description: Hashed password.
+        biography:
+          type: string
+          description: User biography.
+        favorites:
+          type: array
+          items:
+            type: string
+          description: List of favorite recipe IDs.
+        shoppingList:
+          type: array
+          items:
+            type: object
+            properties:
+              recipeId:
+                type: string
+                description: Recipe ID.
+              servings:
+                type: integer
+                description: Number of servings.
+        isPrivate:
+          type: boolean
+          description: Whether the profile is private.
+    PartialUser:
+      type: object
+      properties:
+        username:
+          type: string
+          description: Updated username.
+        biography:
+          type: string
+          description: Updated biography.
+        favorites:
+          type: array
+          items:
+            type: string
+          description: Updated favorite recipes.
+        shoppingList:
+          type: array
+          items:
+            type: object
+            properties:
+              recipeId:
+                type: string
+              servings:
+                type: integer
+        isPrivate:
+          type: boolean
+          description: Updated privacy status.
