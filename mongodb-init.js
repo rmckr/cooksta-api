@@ -1,3 +1,4 @@
+/* eslint-disable */
 /* global db */
 // noinspection JSUnresolvedReference,JSIgnoredPromiseFromCall
 
@@ -57,8 +58,10 @@ const UserValidator = {
     }
   }
 }
+/**
+ * @type {import("./src/utilities/schemas").UserSchema}
+ */
 const ExampleUser = {
-  // eslint-disable-next-line no-undef
   _id: ObjectId('67783a1643964ac750c1c18c'),
   username: 'ExampleUser',
   passwordHash: 'ExampleUserPW',
@@ -111,7 +114,11 @@ const RecipeValidator = {
     }
   }
 }
+/**
+ * @type {import("./src/utilities/schemas").RecipeSchema}
+ */
 const ExampleRecipe = {
+  creatorId: ExampleUser._id,
   title: 'Example Recipe',
   description: 'This is an example recipe.',
   instructions: 'Step 1: Build an API and connect it to a Database.\nStep 2: Build an Android App or a web frontend.\nStep 3: ???\nStep 4: Profit.',

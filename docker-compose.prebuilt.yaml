@@ -1,0 +1,18 @@
+services:
+  mongodb:
+    container_name: mongodb
+    image: gitlab.dit.htwk-leipzig.de/cooksta/cooksta-api/mongodb:latest
+    ports:
+      - "1234:27017"
+    environment:
+      - MONGODB_INITDB_DATABASE=cooksta
+      - MONGODB_INITDB_ROOT_USERNAME=root
+      - MONGODB_INITDB_ROOT_PASSWORD=rootPW
+
+  express:
+    container_name: express
+    image: gitlab.dit.htwk-leipzig.de/cooksta/cooksta-api/express:latest
+    ports:
+      - "9000:3000"
+    depends_on:
+      - mongodb
