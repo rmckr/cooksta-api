@@ -1,4 +1,4 @@
-FROM mongodb/mongodb-community-server:7.0.7-ubuntu2204
+FROM mongodb/mongodb-community-server:8.0.0-ubuntu2204
 
 ENV MONGODB_INITDB_DATABASE=cooksta
 ENV MONGODB_INITDB_ROOT_USERNAME=root

@@ -14,7 +14,8 @@ services:
 
   express:
     container_name: express
-    build: .
+    build:
+        dockerfile: express.Dockerfile
     ports:
       - "9000:3000"
     depends_on:

@@ -1,13 +1,13 @@
 services:
   mongodb:
     container_name: mongodb
-    image: gitlab.dit.htwk-leipzig.de/cooksta/cooksta-api/mongodb:latest
+    image: gitlab.dit.htwk-leipzig.de:5050/cooksta/cooksta-api/mongodb:latest
     ports:
       - "1234:27017"
 
   express:
     container_name: express
-    image: gitlab.dit.htwk-leipzig.de/cooksta/cooksta-api/express:latest
+    image: gitlab.dit.htwk-leipzig.de:5050/cooksta/cooksta-api/express:latest
     ports:
       - "9000:3000"
     depends_on:
