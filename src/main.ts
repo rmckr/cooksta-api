@@ -1,27 +1,24 @@
 import express from 'express'
-import session from 'express-session'
-import MongoStore from 'connect-mongo'
-import { MongoDBConnector } from './utilities/mongodb'
-import rootRouter from './routes/root'
-import userRouter from './routes/users'
-import recipeRouter from './routes/recipes'
+import morgan from 'morgan'
+import recipeRouter from './routes/recipes.js'
+import rootRouter from './routes/root.js'
+import userRouter from './routes/users.js'
+import { MongoDBConnector } from './utilities/mongodb.js'
+import { errorHandler } from './middlewares/errorHandler.js'
 
 // console.log('Happy developing ✨')
 
 const mongodb = new MongoDBConnector()
+await mongodb.ready
 
 const app = express()
-app.use(session({
-  secret: 'cooksta-session-key', // TODO: Get from .env
-  resave: false,
-  saveUninitialized: false,
-  store: MongoStore.create({ clientPromise: mongodb.clientPromise }),
-  cookie: { secure: false, maxAge: 1000 * 60 * 60 * 24 }
-}))
+app.use(morgan('combined'))
 
 app.use('/', rootRouter)
 app.use('/api/users', userRouter)
 app.use('/api/recipes', recipeRouter)
+
+app.use(errorHandler)
 
 const server = app.listen(3000, () => {
   console.log('Listening on port 3000.')

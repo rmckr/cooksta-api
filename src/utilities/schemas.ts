@@ -1,11 +1,14 @@
 import { z } from 'zod'
 
+type WithoutId<T> = Omit<T, 'id'>
+
 export const ObjectIdSchema = z.string().regex(/^[a-fA-F0-9]{24}$/, '\'ObjectId\' must be a valid 24-character hexadecimal string')
 
 export const UserIdParamsSchema = z.object({ userId: ObjectIdSchema })
+export const RecipeIdParamsSchema = z.object({ recipeId: ObjectIdSchema })
 
-export const UserSchema = z.object({
-  id: ObjectIdSchema,
+export const UserBodySchema = z.object({
+  id: ObjectIdSchema.optional(),
   username: z.string().min(3, { message: '\'username\' must be a string with a minimum length of 3' }),
   password: z.string().min(1, { message: '\'password\' must be a non-empty string' }),
   biography: z.string().min(1, { message: '\'biography\' must be a non-empty string' }),
@@ -20,12 +23,10 @@ export const UserSchema = z.object({
     ),
   isPrivate: z.boolean({ message: '\'isPrivate\' must be a boolean' })
 })
-export type UserSchemaType = z.infer<typeof UserSchema>
-export type User = Omit<UserSchemaType, 'id'>
+export type User = WithoutId<z.infer<typeof UserBodySchema>>
+export type UserResponseBody = User & { id: z.infer<typeof ObjectIdSchema> }
 
-export const RecipeIdParamsSchema = z.object({ recipeId: ObjectIdSchema })
-
-export const RecipeSchema = z.object({
+export const RecipeBodySchema = z.object({
   id: ObjectIdSchema.optional(),
   creatorId: ObjectIdSchema,
   title: z.string().min(3, { message: '\'title\' must be a string with a minimum length of 3' }),
@@ -35,5 +36,8 @@ export const RecipeSchema = z.object({
   categories: z.array(z.string(), { message: '\'categories\' must be an array of strings' }), // Min 1 Max 3
   isPrivate: z.boolean({ message: '\'isPrivate\' must be a boolean' })
 })
-export type RecipeSchemaType = z.infer<typeof RecipeSchema>
-export type Recipe = Omit<RecipeSchemaType, 'id'>
+export type Recipe = WithoutId<z.infer<typeof RecipeBodySchema>>
+export type RecipeResponseBody = Recipe & { id: z.infer<typeof ObjectIdSchema> }
+
+export const RegisterLoginBodySchema = UserBodySchema.pick({ username: true, password: true })
+export const RefreshTokenBodySchema = z.object({ refreshToken: z.string().min(1, '\'refreshToken\' must be a non-empty string') })

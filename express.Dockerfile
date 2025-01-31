@@ -10,4 +10,4 @@ WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=builder /app .
 USER node
-CMD ["node", "."]
+CMD ["node", ".", "production"]

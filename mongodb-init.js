@@ -58,13 +58,14 @@ const UserValidator = {
     }
   }
 }
+// noinspection JSValidateTypes
 /**
- * @type {import("./src/utilities/schemas").UserSchema}
+ * @type {import("./src/utilities/schemas").User}
  */
 const ExampleUser = {
   _id: ObjectId('67783a1643964ac750c1c18c'),
   username: 'ExampleUser',
-  passwordHash: 'ExampleUserPW',
+  password: '$2a$12$bEc9cBRG03DXnLc4A2Kc7Oedjs3YhRv4NkJValUbgkplo80J4MGB6', // ExampleUserPW
   biography: 'This is a test user which will always have the same id.',
   favorites: [],
   shoppingList: [],
@@ -115,7 +116,7 @@ const RecipeValidator = {
   }
 }
 /**
- * @type {import("./src/utilities/schemas").RecipeSchema}
+ * @type {import("./src/utilities/schemas").Recipe}
  */
 const ExampleRecipe = {
   creatorId: ExampleUser._id,
@@ -130,7 +131,7 @@ const ExampleRecipe = {
 db.createUser({
   user: 'cooksta',
   pwd: 'cookstaPW',
-  roles: [{ role: 'readWrite', db: 'cooksta' }, { role: 'readWrite', db: 'test' }]
+  roles: [{ role: 'readWrite', db: 'cooksta' }, { role: 'readWrite', db: 'tokens' }, { role: 'readWrite', db: 'gridfs' }]
 })
 
 db.createCollection(

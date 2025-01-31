@@ -2,11 +2,14 @@
 // noinspection JSUnusedGlobalSymbols
 
 import 'express-serve-static-core'
-import { Recipe, User } from '../../src/utilities/schemas'
+import { RecipeResponseBody, UserResponseBody } from '../../src/utilities/schemas.js'
+import { UserJWT } from '../../src/utilities/jwt.js'
 
 declare module 'express-serve-static-core' {
   interface Request {
-    user?: User,
-    recipe?: Recipe
+    userToken?: UserJWT | null,
+    isValidated?: true,
+    user?: UserResponseBody,
+    recipe?: RecipeResponseBody
   }
 }
