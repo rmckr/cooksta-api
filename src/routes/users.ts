@@ -1,9 +1,10 @@
 import express from 'express'
+import fs from 'fs'
 import multer from 'multer'
+import { DatabaseError } from '../utilities/utilities.js'
 import { MongoDBConnector } from '../utilities/mongodb.js'
 import { ObjectId } from 'mongodb'
 import { UserBodySchema, UserIdParamsSchema } from '../utilities/schemas.js'
-import { DatabaseError } from '../utilities/utilities.js'
 import { validate } from '../middlewares/validate.js'
 import { withUser } from '../middlewares/withUser.js'
 
@@ -36,14 +37,17 @@ userRouter.use(express.json())
 ) */
 userRouter.get(
   '/:userId/avatar',
-  validate({ params: UserIdParamsSchema }),
+  withUser,
   async (req, res) => {
-    let avatarFile = await mongodb.avatarStorage.find({ metadata: { contextId: req.params.userId } }).next()
-    if (!avatarFile) { avatarFile = (await mongodb.avatarStorage.find({ filename: 'default' }).next())! }
-
-    res.setHeader('Content-Type', avatarFile.metadata?.contentType as string)
-    const stream = mongodb.avatarStorage.openDownloadStream(avatarFile._id)
-      .on('error', () => { throw new DatabaseError('Failed to download image') })
+    const avatarFile = await mongodb.avatarStorage.find({ 'metadata.contextId': req.user!.id }).next()
+    let stream
+    if (avatarFile) {
+      res.setHeader('Content-Type', avatarFile.metadata?.contentType as string)
+      stream = mongodb.avatarStorage.openDownloadStream(avatarFile._id)
+        .on('error', () => { throw new DatabaseError('Failed to download image') })
+    } else {
+      stream = fs.createReadStream('./data/default.png')
+    }
     stream.pipe(res.status(200))
   }
 )
@@ -52,7 +56,7 @@ userRouter.get(
   '/me',
   withUser,
   (req, res) => {
-    res.status(200).json(req.user)
+    res.status(200).json(req.user!)
   }
 )
 

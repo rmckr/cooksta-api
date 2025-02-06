@@ -1,0 +1,20 @@
+{
+  "_id": "67a3d26ada259d515333cf52",
+  "creatorId": "67a3d1f5da259d515333cf4c",
+  "title": "EASY High Protein Pancakes without SUGAR \uD83E\uDD5E\uD83E\uDD70\uD83D\uDE0B",
+  "description": "Eier in eine Schüssel geben und mit Magerquark vermengen.\nHaferflocken und Backpulver hinzufügen und gut verrühren, bis ein glatter Teig entsteht.\nEine Pfanne mit etwas Öl erhitzen und den Teig portionsweise hineingeben.\nDie Pfannkuchen bei mittlerer Hitze ausbacken, bis sie von beiden Seiten goldbraun sind.\nMit Toppings nach Wahl servieren, z. B. Joghurt, Beeren oder Nüsse.\n",
+  "ingredients": {
+    "Backpulver (TL)": 1,
+    "Eier (Stück)": 3,
+    "Mehl (g)": 180,
+    "Milch (ml)": 50,
+    "Naturjoghurt (g)": 300,
+    "Proteinpulver (g)": 30
+  },
+  "portions": 2,
+  "categories": [
+    "dessert",
+    "quick"
+  ],
+  "isPrivate": false
+}

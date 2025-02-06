@@ -1,0 +1,10 @@
+/init/recipes/01.mp4 filter=lfs diff=lfs merge=lfs -text
+/init/recipes/02.mp4 filter=lfs diff=lfs merge=lfs -text
+/init/recipes/03.mp4 filter=lfs diff=lfs merge=lfs -text
+/init/recipes/04.mp4 filter=lfs diff=lfs merge=lfs -text
+/init/recipes/05.mp4 filter=lfs diff=lfs merge=lfs -text
+/init/recipes/06.mp4 filter=lfs diff=lfs merge=lfs -text
+/init/recipes/07.mp4 filter=lfs diff=lfs merge=lfs -text
+/init/recipes/08.mp4 filter=lfs diff=lfs merge=lfs -text
+/init/recipes/09.mp4 filter=lfs diff=lfs merge=lfs -text
+/init/recipes/10.mp4 filter=lfs diff=lfs merge=lfs -text

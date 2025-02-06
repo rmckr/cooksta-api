@@ -139,10 +139,20 @@ db.createCollection(
   // { validator: UserValidator }
 )
 db.users.createIndex({ username: 'text' }, { unique: true })
-db.users.insertOne(ExampleUser)
+// db.users.insertOne(ExampleUser)
 
 db.createCollection(
   'recipes'
   // { validator: RecipeValidator }
 )
-db.recipes.insertOne(ExampleRecipe)
+// db.recipes.insertOne(ExampleRecipe)
+
+const gridfsDb = db.getSiblingDB('gridfs')
+gridfsDb.users.files.createIndex({ "metadata.contextId": 1 })
+gridfsDb.recipes.files.createIndex({ "metadata.contextId": 1 })
+
+const tokensDb = db.getSiblingDB('tokens')
+tokensDb.refreshTokens.createIndex(
+  { "expiresAt": 1 },
+  { expireAfterSeconds: 0 }
+)

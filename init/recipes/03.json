@@ -1,0 +1,28 @@
+{
+  "_id": "67a3d277da259d515333cf53",
+  "creatorId": "67a3d1f5da259d515333cf4c",
+  "title": "Gebratene Champignons wie vom Weihnachtsmarkt \uD83C\uDF44\u200D\uD83D\uDFEB\uD83D\uDE0B\uD83C\uDF32",
+  "description": "Erhitze Olivenöl in einer Pfanne und gib die ganzen Champignons zusammen mit der in Streifen geschnittenen Zwiebel hinein. Würze mit Pfeffer, Salz und optional etwas Chili. Brate alles an, bis die Champignons schön gebräunt sind. Füge dann Butter hinzu, gefolgt von gewürfelter Paprika und fein gehacktem Knoblauch. Lasse alles noch kurz anbraten, bis die Paprika weich wird.\n\nFür das Dressing vermische Creme Fraiche, Naturjoghurt, Mayonnaise, Knoblauch, Salz und Pfeffer.",
+  "ingredients": {
+    "Champignons (g)": 400,
+    "Creme Fraiche (EL)": 1,
+    "Dressing-Knoblauchzehen (Stück)": 2,
+    "Knoblauchzehen (Stück)": 2,
+    "Mayonnaise (EL)": 1,
+    "Naturjoghurt (EL)": 1,
+    "Zwiebel (Stück)": 1,
+    "Butter (g)": null,
+    "Chili (g)": null,
+    "Olivenöl (ml)": null,
+    "Petersilie (g)": null,
+    "Pfeffer (g)": null,
+    "Paprika (Stück)": null,
+    "Salz (g)": null
+  },
+  "portions": 2,
+  "categories": [
+    "quick",
+    "vegetarian"
+  ],
+  "isPrivate": false
+}

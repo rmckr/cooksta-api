@@ -1,0 +1,26 @@
+{
+  "_id": "67a3d295da259d515333cf55",
+  "creatorId": "67a3d223da259d515333cf4d",
+  "title": "Curry mit Hähnchen und Süßkartoffeln",
+  "description": "Paprika und Zwiebel in einer Pfanne mit Öl anbraten. Knoblauch hinzufügen und kurz mitbraten.\nThai-Curry-Paste einrühren und kurz anrösten.\nHähnchenfilet dazugeben, gut vermengen und anbraten.\nMit Kokosmilch und Sahne ablöschen, 20–30 Minuten köcheln lassen.\nSüßkartoffel separat köcheln, dann zur Soße geben.\nMit Sojasoße, braunem Zucker, Salz und Pfeffer abschmecken.\nNoch kurz köcheln lassen und servieren.\n\n1 Stunde",
+  "ingredients": {
+    "Hähnchenfilet (g)": 400,
+    "Kokosmilch (ml)": 400,
+    "Sahne (ml)": 400,
+    "Sojasoße (EL)": 2,
+    "Brauner Zucker (EL)": 1.5,
+    "Gekochte Süßkartoffel (Stück)": 1,
+    "Paprika (Stück)": 1,
+    "Rote Zwiebel (Stück)": 1,
+    "Öl zum Anbraten (ml)": null,
+    "Rote Thai-Curry-Paste (g)": null,
+    "Salz (g)": null,
+    "Pfeffer (g)": null
+  },
+  "portions": 2,
+  "categories": [
+    "main",
+    "asian"
+  ],
+  "isPrivate": false
+}

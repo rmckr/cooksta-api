@@ -1,0 +1,29 @@
+{
+  "_id": "67a3d256da259d515333cf51",
+  "creatorId": "67a3d1f5da259d515333cf4c",
+  "title": "BEST Chicken Alfredo PASTA\uD83D\uDE0D\uD83D\uDD25\uD83D\uDE0B\uD83E\uDEF6\uD83C\uDFFC",
+  "description": "Pasta in gesalzenem Wasser al dente kochen und abgießen.\nButter in einer Pfanne schmelzen lassen.\nKnoblauch fein hacken, in die Pfanne geben und kurz anschwitzen.\nSahne dazugeben und unter Rühren erhitzen.\nGeriebenen Käse hinzufügen und schmelzen lassen, bis eine cremige Soße entsteht.\nMit Salz und Pfeffer würzen.\nDie gekochte Pasta zur Soße geben, gut vermengen und 5 Minuten ziehen lassen.\nNach Belieben mit frischen Kräutern und extra Käse servieren.\n",
+  "ingredients": {
+    "Petersilie (TL)": 1,
+    "Hähnchenbrust (g)": 300,
+    "Kleine Zwiebel (Stück)": 1,
+    "Knoblauchzehe (Stück)": 3,
+    "Naturjoghurt (EL)": 1,
+    "Paprikapulver (TL)": 1,
+    "Nudeln (g)": 250,
+    "Sahne (ml)": 200,
+    "Butter (g)": null,
+    "Gewürze (g)": null,
+    "Parmesan (g)": null,
+    "Zitronensaft (ml)": null,
+    "Salz (g)": null,
+    "Öl (ml)": null
+  },
+  "portions": 2,
+  "categories": [
+    "main",
+    "italian",
+    "quick"
+  ],
+  "isPrivate": false
+}

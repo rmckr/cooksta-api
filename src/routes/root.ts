@@ -25,7 +25,7 @@ rootRouter.post(
   async (req, res) => {
     const body: User = {
       username: req.body.username,
-      password: await bcrypt.hash(req.body.password, 10),
+      password: await bcrypt.hash(req.body.password, 12),
       biography: '',
       favorites: [],
       shoppingList: [],
@@ -54,7 +54,8 @@ rootRouter.post(
   async (req, res) => {
     const { username, password } = req.body
 
-    const user = await mongodb.users.findOne({ username })
+    const user = await mongodb.users.findOne({ username: username })
+    console.log(user, username, password)
     if (!user || !await bcrypt.compare(password, user.password)) {
       throw new HTTPError(401, 'Invalid username or password')
     }

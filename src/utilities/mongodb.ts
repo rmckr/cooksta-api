@@ -1,4 +1,3 @@
-import fs from 'fs'
 import ms from 'ms'
 import sharp from 'sharp'
 import { Db, GridFSBucket, MongoClient } from 'mongodb'
@@ -9,11 +8,11 @@ const production = process.argv[2] !== '--dev'
 
 export class MongoDBConnector {
   private static client?: MongoClient
+  private static connectionPromise?: Promise<void>
+
   private _cooksta?: Db
   private _tokens?: Db
   private _gridfs?: Db
-
-  private static connectionPromise?: Promise<void>
 
   constructor() {
     if (!MongoDBConnector.client) {
@@ -34,21 +33,14 @@ export class MongoDBConnector {
 
   get ready() {
     return (async () => {
-      if (MongoDBConnector.connectionPromise) {
-        await MongoDBConnector.connectionPromise
-      }
+      if (!MongoDBConnector.connectionPromise) { throw new Error('Database not initialized.') }
+      await MongoDBConnector.connectionPromise
       if (!this._cooksta || !this._tokens || !this._gridfs) {
         this._cooksta = MongoDBConnector.client!.db('cooksta')
         this._tokens = MongoDBConnector.client!.db('tokens')
         this._gridfs = MongoDBConnector.client!.db('gridfs')
 
-        const defaultAvatar = await this.avatarStorage.find({ filename: 'default' }).next()
-        if (!defaultAvatar) {
-          const uploadStream = this.avatarStorage.openUploadStream('default', { metadata: { contentType: 'image/png' } })
-          fs.createReadStream('./files/img/default.png').pipe(uploadStream)
-        }
-
-        await this.refreshTokens.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 })
+        // await this.refreshTokens.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 })
       }
     })()
   }
@@ -87,7 +79,7 @@ export class MongoDBConnector {
 
   get avatarStorage() {
     if (!this._gridfs) { throw new Error('Database not initialized.') }
-    return new GridFSBucket(this._gridfs, { bucketName: 'avatars' })
+    return new GridFSBucket(this._gridfs, { bucketName: 'users' })
   }
 
   get recipeStorage() {

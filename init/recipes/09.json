@@ -1,0 +1,25 @@
+{
+  "_id": "67a3d2c3da259d515333cf59",
+  "creatorId": "67a3d244da259d515333cf4f",
+  "title": "Schokoladige Schokomuffins \uD83D\uDC4C\uD83C\uDFFC\uD83D\uDE0D",
+  "description": "• Heize den Ofen auf 175°C (Ober-/Unterhitze) vor.\n• Schlage die Eier zusammen mit Zucker, Vanillezucker und einer Prise Salz schaumig.\n• Verrühre die weiche Butter separat, bis sie cremig ist, und füge dann die Milch hinzu. Rühre beides gut unter.\n• Mische Mehl, Backkakao, Backpulver und Salz in einer separaten Schüssel.\n• Hebe die Schokodrops unter.\n• Fülle den Teig in Muffinförmchen und streue die restlichen Schokodrops oben auf.\nBacke die Muffins ca. 20-25 Minuten.\n\n175 Grad O-/U ca. 20-25 Min",
+  "ingredients": {
+    "Backkakao (g)": 50,
+    "Backpulver (TL)": 1.5,
+    "Butter weich (g)": 130,
+    "Eier (Stück)": 3,
+    "Mehl (g)": 250,
+    "Milch (ml)": 130,
+    "Prise Salz (g)": 1,
+    "Schokodrops (g)": 200,
+    "Vanillezucker (Pck.)": 1,
+    "Zucker (g)": 130,
+    "Schokodrops zum Toppen (g)": 50
+  },
+  "portions": 12,
+  "categories": [
+    "baking",
+    "dessert"
+  ],
+  "isPrivate": false
+}

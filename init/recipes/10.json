@@ -1,0 +1,23 @@
+{
+  "_id": "67a3d2ceda259d515333cf5a",
+  "creatorId": "67a3d244da259d515333cf4f",
+  "title": "Pizzaschnecken",
+  "description": "• Heize den Ofen auf 200°C (Ober-/Unterhitze) vor.\n• Rolle einen Blätterteig oder Pizzateig aus und bestreiche ihn mit Ketchup oder Tomatensauce.\n• Streue Oregano und geriebenen Käse gleichmäßig darauf.\n• Belege den Teig mit Wurst, Mais, Cocktailtomaten und Mini-Mozzarella.\n• Nun kommt der andere Teig oben drauf.\n• Schneide ihn in Streifen und rolle ihn zu kleine Schnecken.\nLege die Pizzaschnecken auf ein Backblech und backe sie für ca. 20-25 Minuten.",
+  "ingredients": {
+    "Blätterteig oder Pizzateig (Stück)": 2,
+    "Cocktailtomaten (Stück)": null,
+    "Geriebener Käse (g)": null,
+    "Ketchup oder Tomatensauce (ml)": null,
+    "Mini Mozzarella (g)": null,
+    "Mais (g)": null,
+    "Oregano (g)": null,
+    "Wurst (g)": null
+  },
+  "portions": 10,
+  "categories": [
+    "italian",
+    "baking",
+    "quick"
+  ],
+  "isPrivate": false
+}
