@@ -1,9 +1,12 @@
 {
-  "_id": "67a3d1f5da259d515333cf4c",
-  "username": "TagesRezept",
-  "password": "$2a$12$ME/5XBeXE412hUviD7NCe.onMW6gpbYdrjVxqE090ftEqGyD2pE/i",
-  "biography": "Einfache und köstliche Rezepte für jeden Tag. Kontakt: tagesrezept@outlook.com",
-  "favorites": [],
-  "shoppingList": [],
-  "isPrivate": false
+  "_id": "67a5bf34ad7c5187795f7229",
+  "username": "TestUser",
+  "password": "$2a$12$/ASr4ZKjcLLIUVuZN.7jSOQC0nr6LioPnvjniBs.oEtI/T1JPCMTm",
+  "biography": "A sample user for testing.",
+  "favorites": ["67a3d256da259d515333cf51", "67a3d26ada259d515333cf52", "67a3d277da259d515333cf53"],
+  "shoppingList": [
+    { "67a3d283da259d515333cf54": 2 },
+    { "67a3d295da259d515333cf55": 4 }
+  ],
+  "isPrivate": true
 }
