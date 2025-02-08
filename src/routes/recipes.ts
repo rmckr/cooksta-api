@@ -2,7 +2,7 @@ import express from 'express'
 import multer from 'multer'
 import { MongoDBConnector } from '../utilities/mongodb.js'
 import { ObjectId } from 'mongodb'
-import { RecipeIdParamsSchema, RecipeBodySchema } from '../utilities/schemas.js'
+import { RecipeIdParamsSchema, RecipeBodySchema, RecipeFeedQuerySchema, Recipe } from '../utilities/schemas.js'
 import { DatabaseError, handleRecipeMedia, HTTPError } from '../utilities/utilities.js'
 import { validate } from '../middlewares/validate.js'
 import { withRecipe } from '../middlewares/withRecipe.js'
@@ -16,10 +16,58 @@ const recipeRouter = express.Router()
 recipeRouter.use(express.json())
 
 /**
+ * GET /api/recipes/<id>/media
+ * Get recipe media by recipe id.
+ * Parameters: recipeId
+ * Result: Media binary data
+ */
+recipeRouter.get(
+  '/:recipeId/media',
+  withRecipe,
+  async (req, res) => {
+    const mediaFile = await mongodb.recipeStorage.find({ 'metadata.contextId': req.recipe!.id }).next()
+    if (!mediaFile) { throw new HTTPError(404, 'No media file found') }
+    res.setHeader('Content-Type', mediaFile.metadata?.contentType as string)
+    const stream = mongodb.recipeStorage.openDownloadStream(mediaFile._id)
+      .on('error', () => { throw new DatabaseError('Failed to download file') })
+    stream.pipe(res.status(200))
+  }
+)
+
+/**
+ * GET /api/recipes/feed
+ * Get feed of recipes.
+ * Query: ?limit=10&page=1&sortBy=date
+ * Result: Recipe[]
+ */
+recipeRouter.get(
+  '/feed',
+  validate({ query: RecipeFeedQuerySchema }),
+  async (req, res) => {
+    const { limit = 10, page = 1, sortBy = 'date' } = req.query
+
+    const skip = (page - 1) * limit
+
+    const sortOptions: Record<string, Record<string, 1 | -1>> = {
+      date: { createdAt: -1 },
+      popularity: { likes: -1, createdAt: -1 }
+    }
+
+    const recommendedRecipes = await mongodb.recipes.aggregate<Recipe>([
+      { $sort: sortOptions[sortBy] },
+      { $skip: skip },
+      { $limit: limit }
+    ]).toArray()
+
+    res.status(200).json(recommendedRecipes)
+  }
+)
+
+/**
  * POST /api/recipes
  * Create a new recipe
- * Parameters: none
- * Body: Recipe (excl. id)
+ * Body: Recipe (with or without id, id is ignored)
+ * Result: Recipe
  */
 recipeRouter.post(
   '/',
@@ -51,7 +99,7 @@ recipeRouter.post(
  * GET /api/recipes/<id>
  * Get recipe data by id
  * Parameters: recipeId
- * Body: none
+ * Result: Recipe
  */
 recipeRouter.get(
   '/:recipeId',
@@ -66,6 +114,7 @@ recipeRouter.get(
  * Replace an entire recipe
  * Parameters: recipeId
  * Body: Recipe (with or without id, id is ignored)
+ * Result: Recipe ID
  */
 recipeRouter.put(
   '/:recipeId',
@@ -91,6 +140,7 @@ recipeRouter.put(
  * Modifies a recipe partially
  * Parameters: recipeId
  * Body: Recipe (all fields optional, id is ignored)
+ * Result: Recipe
  */
 recipeRouter.patch(
   '/:recipeId',
@@ -115,7 +165,7 @@ recipeRouter.patch(
  * DELETE /api/recipes/<id>
  * Deletes a recipe
  * Parameters: recipeId
- * Body: none
+ * Result: Status 204
  */
 recipeRouter.delete(
   '/:recipeId',

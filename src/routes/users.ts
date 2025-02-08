@@ -44,7 +44,7 @@ userRouter.get(
     if (avatarFile) {
       res.setHeader('Content-Type', avatarFile.metadata?.contentType as string)
       stream = mongodb.avatarStorage.openDownloadStream(avatarFile._id)
-        .on('error', () => { throw new DatabaseError('Failed to download image') })
+        .on('error', () => { throw new DatabaseError('Failed to download file') })
     } else {
       stream = fs.createReadStream('./data/default.png')
     }

@@ -3,7 +3,11 @@ import { IRoute } from 'express-serve-static-core'
 import { z, ZodSchema } from 'zod'
 import { HTTPError } from '../utilities/utilities.js'
 
-export function validate<TParams extends ZodSchema, TBody extends ZodSchema>(schemas: { params?: TParams, body?: TBody }): RequestHandler<z.infer<TParams>, unknown, z.infer<TBody>> {
+export function validate<
+  TParams extends ZodSchema,
+  TBody extends ZodSchema,
+  TQuery extends ZodSchema
+>(schemas: { params?: TParams, body?: TBody, query?: TQuery }): RequestHandler<z.infer<TParams>, unknown, z.infer<TBody>, z.infer<TQuery>> {
   return (req, _res, next) => {
     const hasRouteParams = (req.route as IRoute).path.includes(':')
     if (schemas.params && hasRouteParams) {
@@ -11,7 +15,6 @@ export function validate<TParams extends ZodSchema, TBody extends ZodSchema>(sch
       if (parsed.error) {
         throw new HTTPError(400, `Invalid request parameters: ${parsed.error.message}`)
       }
-      req.params = parsed.data as z.infer<TParams>
     }
 
     if (schemas.body) {
@@ -19,7 +22,13 @@ export function validate<TParams extends ZodSchema, TBody extends ZodSchema>(sch
       if (parsed.error) {
         throw new HTTPError(400, `Invalid request body: ${parsed.error.message}`)
       }
-      req.body = parsed.data as z.infer<TBody>
+    }
+
+    if (schemas.query) {
+      const parsed = schemas.query.safeParse(req.query)
+      if (!parsed.success) {
+        throw new HTTPError(400, `Invalid query parameters: ${parsed.error.message}`)
+      }
     }
 
     req.isValidated = true
