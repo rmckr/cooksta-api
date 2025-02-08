@@ -23,9 +23,9 @@ Start the server:
 docker compose up -d
 ```
 
-Once up and running, the API will be available at `http://localhost:9000/api`.
+Once up and running, the API will be available at `http://localhost:3000/api`.
 
-### Local Setup
+### Local development
 
 Clone this repository:
 ```shell
@@ -36,6 +36,11 @@ cd cooksta-api
 Install dependencies:
 ```shell
 npm install
+```
+
+Start MongoDB:
+```shell
+docker compose up mongodb -d
 ```
 
 Start the development server:
@@ -56,7 +61,7 @@ Check [openapi.yaml](openapi.yaml) for a complete endpoint documentation.
 
 ### Example Request
 ```shell
-curl -X GET http://localhost:9000/api/recipes
+curl -X GET http://localhost:3000/api/recipes
 ```
 
 ---

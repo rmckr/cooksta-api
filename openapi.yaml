@@ -5,37 +5,8 @@ info:
   version: 1.0.0
 servers:
   - url: http://localhost:3000
-    description: dev
-  - url: http://localhost:9000
-    description: docker
 
 paths:
-  /api/users/search/{query}:
-    get:
-      summary: Search for users by username.
-      parameters:
-        - name: query
-          in: path
-          required: true
-          schema:
-            type: string
-          description: The username or part of the username to search for.
-      responses:
-        '200':
-          description: A list of matching users.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    username:
-                      type: string
-        '500':
-          description: Server error.
-          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
-
   /api/users/{userId}/avatar:
     get:
       summary: Get a user's avatar.
@@ -113,7 +84,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PartialUser'
+              anyOf:
+                - $ref: '#/components/schemas/User'
       parameters:
         - name: userId
           in: path
@@ -187,65 +159,71 @@ components:
           type: string
     User:
       type: object
-      required:
-        - username
-        - passwordHash
-        - biography
       properties:
         id:
           type: string
-          description: User ID.
+          nullable: true
         username:
           type: string
-          description: Username.
-        passwordHash:
+          minLength: 3
+          maxLength: 50
+        password:
           type: string
-          description: Hashed password.
+          minLength: 8
         biography:
           type: string
-          description: User biography.
+          minLength: 1
+          maxLength: 500
         favorites:
           type: array
           items:
             type: string
-          description: List of favorite recipe IDs.
         shoppingList:
           type: array
           items:
             type: object
-            properties:
-              recipeId:
-                type: string
-                description: Recipe ID.
-              servings:
-                type: integer
-                description: Number of servings.
+            additionalProperties:
+              type: integer
+              minimum: 1
         isPrivate:
           type: boolean
-          description: Whether the profile is private.
-    PartialUser:
+    UserResponseBody:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - required: [id]
+    Recipe:
       type: object
       properties:
-        username:
+        id:
           type: string
-          description: Updated username.
-        biography:
+          nullable: true
+        creatorId:
           type: string
-          description: Updated biography.
-        favorites:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 100
+        description:
+          type: string
+          minLength: 1
+        ingredients:
+          type: object
+          additionalProperties:
+            type: number
+            nullable: true
+        portions:
+          type: integer
+          minimum: 1
+        categories:
           type: array
           items:
             type: string
-          description: Updated favorite recipes.
-        shoppingList:
-          type: array
-          items:
-            type: object
-            properties:
-              recipeId:
-                type: string
-              servings:
-                type: integer
+            enum: [ asian, baking, dessert, drink, main, italian, quick, soup, vegetarian ]
+          minItems: 1
+          maxItems: 3
         isPrivate:
           type: boolean
-          description: Updated privacy status.
+    RecipeResponseBody:
+      allOf:
+        - $ref: '#/components/schemas/Recipe'
+        - required: [id]
