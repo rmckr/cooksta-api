@@ -1,0 +1,20 @@
+{
+  "_id": "67a914e0e211507a1609f506 ",
+  "creatorId": "67a3d234da259d515333cf4e",
+  "title": "fruchtige Limonade",
+  "description": "Eine Portion ergibt 4 Gläser \uD83C\uDF79 \nSo geht's:\u2060 \nFür den Sirup die Himbeeren (200g) verlesen, bei Bedarf waschen. Rosmarin (4 Zweige) waschen. Beides in einem Topf mit Zucker, Limettensaft und 150 ml Wasser aufkochen. 8-10 Minuten köcheln lassen, hin und wieder umrühren. Abkühlen lassen. Anschließend durch ein Sieb gießen und die Siebrückstände mit einem Löffel ausdrücken.\u2060 \n\u2060 \nFür die Limonade die Limette waschen, trocknen und in Scheiben schneiden. Himbeeren verlesen, bei Bedarf waschen. Rosmarinzweige waschen, trocken schütteln und mit den Eiswürfeln, Limettenscheiben und Himbeeren auf 4 große Gläser verteilen. Den Sirup angießen und mit Mineralwasser auffüllen.\u2060 \n\u2060 \nViel Spaß beim Genießen! \uD83D\uDE0B ",
+  "ingredients": {
+    "Himbeeren (g)": 280,
+    "Rosmarin (Zweige)": 8,
+    "Zucker (g)": 60,
+    "Limettensaft (EL)": 3,
+    "Limetten (Stück)": 1,
+    "Eiswürfel (Stück)": 8,
+    "Mineralwasser (l)": 1.2
+  },
+  "portions": 1,
+  "categories": [
+    "drinks"
+  ],
+  "isPrivate": false
+}
