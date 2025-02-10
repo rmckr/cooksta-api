@@ -1,15 +1,9 @@
 # Cooksta API
 
----
-
 A simple MongoDB and Express backend for [cooksta-app](https://gitlab.dit.htwk-leipzig.de/cooksta/cooksta-app).\
 Supports various API endpoints defined in [openapi.yaml](openapi.yaml)
 
----
-
 ## Getting started
-
-### Docker
 
 Clone this repository:
 ```shell
@@ -18,20 +12,21 @@ cd cooksta-api
 ```
 Alternatively, use SSH to clone: `git@gitlab.dit.htwk-leipzig.de:cooksta/cooksta-api.git`.
 
-Start the server:
+---
+
+### Using Docker
+
+Start the server and MongoDB:
 ```shell
 docker compose up -d
 ```
 
-Once up and running, the API will be available at `http://localhost:3000/api`.
-
 ### Local development
 
-Clone this repository:
-```shell
-git clone https://gitlab.dit.htwk-leipzig.de/cooksta/cooksta-api.git
-cd cooksta-api
-```
+This is only needed if you want to actively develop the API.
+
+<details>
+<summary>Click to expand</summary>
 
 Install dependencies:
 ```shell
@@ -50,9 +45,11 @@ npm run dev
 
 The server will automatically restart once it detects changes to the source files.
 
-Once up and running, the API will be available at `http://localhost:3000/api`.
+</details>
 
 ---
+
+Once up and running, the API will be available at `http://localhost:3000/api`.
 
 ## Usage
 
@@ -63,5 +60,3 @@ Check [openapi.yaml](openapi.yaml) for a complete endpoint documentation.
 ```shell
 curl -X GET http://localhost:3000/api/recipes
 ```
-
----

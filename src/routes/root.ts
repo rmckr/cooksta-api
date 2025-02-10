@@ -28,7 +28,7 @@ rootRouter.post(
       password: await bcrypt.hash(req.body.password, 12),
       biography: '',
       favorites: [],
-      shoppingList: [],
+      shoppingList: {},
       isPrivate: false
     }
 

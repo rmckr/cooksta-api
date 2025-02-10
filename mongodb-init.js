@@ -5,127 +5,90 @@
 const UserValidator = {
   $jsonSchema: {
     title: 'User Validation',
-    required: ['username', 'passwordHash', 'biography', 'favorites', 'shoppingList', 'isPrivate'],
+    required: ['username', 'password', 'biography', 'favorites', 'shoppingList', 'isPrivate'],
     properties: {
       username: {
         bsonType: 'string',
         minLength: 3,
         description: '\'username\' must be a string with a minimum length of 3'
       },
-      passwordHash: {
+      password: {
         bsonType: 'string',
-        description: '\'passwordHash\' must be a string and is required'
+        description: '\'password\' must be a string'
       },
       biography: {
         bsonType: 'string',
-        description: '\'biography\' must be a string and is required'
-      },
-      logo: {
-        bsonType: 'objectId',
-        description: '\'logo\' must be ObjectId of an image file'
+        description: '\'biography\' must be a string'
       },
       favorites: {
         bsonType: 'array',
-        items: {
-          bsonType: 'objectId',
-          description: '\'favorites\' item must be ObjectId of recipe'
-        },
-        description: '\'favorites\' must be an array of recipe ObjectIds and is required'
+        items: { bsonType: 'objectId' },
+        description: '\'favorites\' must be an array of ObjectIds'
       },
       shoppingList: {
-        bsonType: 'array',
-        items: {
-          bsonType: 'object',
-          required: ['recipeId', 'servings'],
-          properties: {
-            recipeId: {
-              bsonType: 'objectId',
-              description: '\'shoppingList.recipeId\' must be ObjectId of recipe'
-            },
-            servings: {
-              bsonType: 'int',
-              minimum: 1,
-              description: '\'shoppingList.servings\' must be an integer of at least 1'
-            }
+        bsonType: 'object',
+        patternProperties: {
+          "^[a-fA-F0-9]{24}$": {
+            "bsonType": "int",
+            "minimum": 1
           }
         },
-        description: '\'shoppingList\' must be an array of objects with keys recipeId and servings and is required'
+        description: '\'shoppingList\' must be an object with ObjectId keys and int values'
       },
       isPrivate: {
         bsonType: 'bool',
-        description: '\'isPrivate\' must be a boolean and is required'
+        description: '\'isPrivate\' must be a boolean'
       }
     }
   }
-}
-// noinspection JSValidateTypes
-/**
- * @type {import("./src/utilities/schemas").User}
- */
-const ExampleUser = {
-  _id: ObjectId('67783a1643964ac750c1c18c'),
-  username: 'ExampleUser',
-  password: '$2a$12$bEc9cBRG03DXnLc4A2Kc7Oedjs3YhRv4NkJValUbgkplo80J4MGB6', // ExampleUserPW
-  biography: 'This is a test user which will always have the same id.',
-  favorites: [],
-  shoppingList: [],
-  isPrivate: true
 }
 
 const RecipeValidator = {
   $jsonSchema: {
     title: 'Recipe Validation',
-    required: ['title', 'description', 'instructions', 'ingredientsList', 'categories', 'isPrivate'],
+    required: ['creatorId', 'title', 'description', 'ingredients', 'portions', 'categories', 'isPrivate'],
+    additionalProperties: false,
     properties: {
+      creatorId: {
+        bsonType: 'objectId',
+        description: '\'creatorId\' must be ObjectId of user',
+      },
       title: {
         bsonType: 'string',
         minLength: 3,
-        description: '\'title\' must be a string with a minimum length of 3'
-      },
-      image: {
-        bsonType: 'binData',
-        description: '\'image\' must be binary data and is required'
-      },
-      video: {
-        bsonType: 'binData',
-        description: '\'video\' must be binary data'
+        maxLength: 100,
+        description: '\'title\' must be a string with 3<=length<=100'
       },
       description: {
         bsonType: 'string',
-        description: '\'description\' must be a string and is required'
+        minLength: 1,
+        description: '\'description\' must be a string with minimum length of 1'
       },
-      instructions: {
-        bsonType: 'string',
-        description: '\'instructions\' must be a string and is required'
+      ingredients: {
+        bsonType: 'object',
+        patternProperties: {
+          "^.*$": {
+            bsonType: ['int', 'null']
+          }
+        },
+        description: '\'ingredients\' must be an object with string keys and int values'
       },
-      ingredientsList: {
-        bsonType: 'array',
-        items: { bsonType: 'string' },
-        description: '\'ingredientsList\' must be an array of strings and is required'
+      portions: {
+        bsonType: 'int',
+        minimum: 1,
+        description: '\'portions\' must be an int with minimum value 1'
       },
       categories: {
         bsonType: 'array',
         items: { bsonType: 'string' },
-        description: '\'categories\' must be an array of strings and is required'
+        description: '\'categories\' must be an array of strings'
       },
       isPrivate: {
         bsonType: 'bool',
-        description: '\'isPrivate\' must be a boolean and is required'
+        description: '\'isPrivate\' must be a boolean'
       }
     }
   }
-}
-/**
- * @type {import("./src/utilities/schemas").Recipe}
- */
-const ExampleRecipe = {
-  creatorId: ExampleUser._id,
-  title: 'Example Recipe',
-  description: 'This is an example recipe.',
-  instructions: 'Step 1: Build an API and connect it to a Database.\nStep 2: Build an Android App or a web frontend.\nStep 3: ???\nStep 4: Profit.',
-  ingredientsList: ['Node.js', 'MongoDB', 'Android Studio', 'Vue'],
-  categories: ['cooking', 'fun', 'long'],
-  isPrivate: true
 }
 
 db.createUser({
@@ -139,13 +102,11 @@ db.createCollection(
   // { validator: UserValidator }
 )
 db.users.createIndex({ username: 'text' }, { unique: true })
-// db.users.insertOne(ExampleUser)
 
 db.createCollection(
   'recipes'
   // { validator: RecipeValidator }
 )
-// db.recipes.insertOne(ExampleRecipe)
 
 const gridfsDb = db.getSiblingDB('gridfs')
 gridfsDb.users.files.createIndex({ "metadata.contextId": 1 })

@@ -13,9 +13,9 @@ export const UserBodySchema = z.object({
   password: z.string().min(8),
   biography: z.string().min(1).max(500),
   favorites: z.array(ObjectIdSchema),
-  shoppingList: z.array(
-    z.record(ObjectIdSchema, z.number().int().min(1))
-      .refine((obj) => Object.keys(obj).length === 1)
+  shoppingList: z.record(
+    ObjectIdSchema,
+    z.number().int().min(1)
   ),
   isPrivate: z.boolean()
 })
