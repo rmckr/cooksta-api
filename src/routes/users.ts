@@ -4,7 +4,7 @@ import multer from 'multer'
 import { DatabaseError } from '../utilities/utilities.js'
 import { MongoDBConnector } from '../utilities/mongodb.js'
 import { ObjectId } from 'mongodb'
-import { UserBodySchema, UserIdParamsSchema } from '../utilities/schemas.js'
+import { UserBodySchema, UserIdParamsSchema, UserResponseBody } from '../utilities/schemas.js'
 import { validate } from '../middlewares/validate.js'
 import { withUser } from '../middlewares/withUser.js'
 
@@ -92,7 +92,7 @@ userRouter.put(
     if (!result) { throw new DatabaseError('Failed to replace user') }
 
     const { _id, ...modifiedData } = result
-    const user = Object.assign(modifiedData, { id: _id.toHexString() })
+    const user: UserResponseBody = Object.assign(modifiedData, { id: _id.toHexString() })
 
     if (req.file) { await mongodb.uploadUserAvatar(req.file, user.id) }
 
@@ -117,7 +117,7 @@ userRouter.patch(
     if (!result) { throw new DatabaseError('Failed to modify user') }
 
     const { _id, ...modifiedData } = result
-    const user = Object.assign(modifiedData, { id: _id.toHexString() })
+    const user: UserResponseBody = Object.assign(modifiedData, { id: _id.toHexString() })
 
     if (req.file) { await mongodb.uploadUserAvatar(req.file, req.params.userId) }
 

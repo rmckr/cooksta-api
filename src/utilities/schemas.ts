@@ -44,7 +44,9 @@ export const RegisterLoginBodySchema = UserBodySchema.pick({ username: true, pas
 export const RefreshTokenBodySchema = z.object({ refreshToken: z.string().min(1) })
 
 export const RecipeFeedQuerySchema = z.object({
-  limit: z.coerce.number().int().nonnegative().max(100).optional(),
-  page: z.coerce.number().int().nonnegative().optional(),
+  limit: z.coerce.number().int().nonnegative().max(100).optional()
+    .transform((val) => val !== undefined ? String(val) : undefined),
+  page: z.coerce.number().int().nonnegative().optional()
+    .transform((val) => val !== undefined ? String(val) : undefined),
   sortBy: z.enum(['date', 'popularity']).optional()
 })

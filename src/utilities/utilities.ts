@@ -24,10 +24,10 @@ export class MissingAccessTokenError extends HTTPError {
   constructor() { super(401, 'This resource requires authentication') }
 }
 export class InvalidAccessTokenError extends HTTPError {
-  constructor() { super(403, 'Invalid or expired access token') }
+  constructor() { super(401, 'Invalid or expired access token') }
 }
 export class InvalidRefreshTokenError extends HTTPError {
-  constructor() { super(403, 'Invalid or expired refresh token') }
+  constructor() { super(401, 'Invalid or expired refresh token') }
 }
 export class NoPermissionError extends HTTPError {
   // TODO: Consider this as 404 to hide existence of resource to unauthenticated clients
