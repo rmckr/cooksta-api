@@ -1,4 +1,10 @@
-import { HTTPError, MiddlewareChainError, MissingAccessTokenError, NoPermissionError } from '../utilities/utilities.js'
+import {
+  HTTPError,
+  MiddlewareChainError,
+  MissingAccessTokenError,
+  NoPermissionError,
+  normalizeId
+} from '../utilities/utilities.js'
 import { MongoDBConnector } from '../utilities/mongodb.js'
 import { ObjectId } from 'mongodb'
 import { RequestHandler, Router } from 'express'
@@ -20,8 +26,7 @@ const getUser: RequestHandler<{ userId?: string }> = async (req, _res, next) => 
 
   if (!user) { throw new HTTPError(404, 'User not found') }
 
-  const { _id, ...userData } = user
-  req.user = Object.assign(userData, { id: _id.toHexString() })
+  req.user = normalizeId(user)
 
   if (req.user.isPrivate) {
     if (!req.userToken) { throw new MissingAccessTokenError() }

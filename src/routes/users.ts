@@ -1,10 +1,10 @@
 import express from 'express'
 import fs from 'fs'
 import multer from 'multer'
-import { DatabaseError } from '../utilities/utilities.js'
+import { DatabaseError, normalizeId } from '../utilities/utilities.js'
 import { MongoDBConnector } from '../utilities/mongodb.js'
 import { ObjectId } from 'mongodb'
-import { UserBodySchema, UserIdParamsSchema, UserResponseBody } from '../utilities/schemas.js'
+import { UserBodySchema, UserIdParamsSchema } from '../utilities/schemas.js'
 import { validate } from '../middlewares/validate.js'
 import { withUser } from '../middlewares/withUser.js'
 
@@ -91,8 +91,7 @@ userRouter.put(
     const result = await mongodb.users.findOneAndReplace({ _id: new ObjectId(req.params.userId) }, body, { returnDocument: 'after' })
     if (!result) { throw new DatabaseError('Failed to replace user') }
 
-    const { _id, ...modifiedData } = result
-    const user: UserResponseBody = Object.assign(modifiedData, { id: _id.toHexString() })
+    const user = normalizeId(result)
 
     if (req.file) { await mongodb.uploadUserAvatar(req.file, user.id) }
 
@@ -116,8 +115,7 @@ userRouter.patch(
     const result = await mongodb.users.findOneAndUpdate({ _id: new ObjectId(req.params.userId) }, { $set: body }, { returnDocument: 'after' })
     if (!result) { throw new DatabaseError('Failed to modify user') }
 
-    const { _id, ...modifiedData } = result
-    const user: UserResponseBody = Object.assign(modifiedData, { id: _id.toHexString() })
+    const user = normalizeId(result)
 
     if (req.file) { await mongodb.uploadUserAvatar(req.file, req.params.userId) }
 

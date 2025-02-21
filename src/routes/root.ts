@@ -2,8 +2,8 @@ import bcrypt from 'bcrypt'
 import express from 'express'
 import { InsertOneResult, UpdateResult } from 'mongodb'
 import { MongoDBConnector } from '../utilities/mongodb.js'
-import { RefreshTokenBodySchema, RegisterLoginBodySchema, User, UserResponseBody } from '../utilities/schemas.js'
-import { DatabaseError, HTTPError, InvalidRefreshTokenError } from '../utilities/utilities.js'
+import { RefreshTokenBodySchema, RegisterLoginBodySchema, User } from '../utilities/schemas.js'
+import { DatabaseError, HTTPError, InvalidRefreshTokenError, normalizeId } from '../utilities/utilities.js'
 import { validate } from '../middlewares/validate.js'
 import { generateAccessToken, generateRefreshToken, UserJWT, verifyRefreshToken } from '../utilities/jwt.js'
 
@@ -36,7 +36,8 @@ rootRouter.post(
 
     const result: InsertOneResult<User> | UpdateResult<User> = await mongodb.users.insertOne(body)
     if (!result.acknowledged) { throw new DatabaseError('Failed to register user') }
-    const user: UserResponseBody = Object.assign(body, { id: result.insertedId.toHexString() })
+
+    const user = normalizeId(body, result.insertedId)
 
     res.status(201).setHeader('Location', `/api/user/${user.id}`).json(user)
   }

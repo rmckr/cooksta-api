@@ -1,4 +1,10 @@
-import { HTTPError, MiddlewareChainError, MissingAccessTokenError, NoPermissionError } from '../utilities/utilities.js'
+import {
+  HTTPError,
+  MiddlewareChainError,
+  MissingAccessTokenError,
+  NoPermissionError,
+  normalizeId
+} from '../utilities/utilities.js'
 import { MongoDBConnector } from '../utilities/mongodb.js'
 import { ObjectId } from 'mongodb'
 import { RecipeIdParamsSchema } from '../utilities/schemas.js'
@@ -20,8 +26,7 @@ const getRecipe: RequestHandler<{ recipeId?: string }> = async (req, _res, next)
 
   if (!recipe) { throw new HTTPError(404, 'Recipe not found') }
 
-  const { _id, ...data } = recipe
-  req.recipe = Object.assign(data, { id: _id.toHexString() })
+  req.recipe = normalizeId(recipe)
 
   if (req.recipe.isPrivate) {
     if (!req.userToken) { throw new MissingAccessTokenError() }

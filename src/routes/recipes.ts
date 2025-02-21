@@ -7,9 +7,9 @@ import {
   RecipeBodySchema,
   RecipeFeedQuerySchema,
   RecipeIdParamsSchema,
-  RecipeResponseBody
+  SearchQuerySchema
 } from '../utilities/schemas.js'
-import { DatabaseError, handleRecipeMedia, HTTPError } from '../utilities/utilities.js'
+import { DatabaseError, handleRecipeMedia, HTTPError, normalizeId } from '../utilities/utilities.js'
 import { validate } from '../middlewares/validate.js'
 import { withRecipe } from '../middlewares/withRecipe.js'
 
@@ -20,6 +20,35 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 *
 
 const recipeRouter = express.Router()
 recipeRouter.use(express.json())
+
+/**
+ * GET /api/recipes/search
+ * Search recipes by text
+ * Query: Search query
+ * Result: Recipe[]
+ */
+recipeRouter.get(
+  '/search',
+  validate({ query: SearchQuerySchema }),
+  async (req, res) => {
+    const { q, limit = '10', page = '1' } = req.query
+
+    const limitValue = parseInt(limit, 10)
+    const pageValue = parseInt(page, 10)
+    const skip = (pageValue - 1) * limitValue
+
+    const recipes = await mongodb.recipes
+      .find({ $text: { $search: q } }, { projection: { score: { $meta: 'textScore' } } })
+      .sort({ score: { $meta: 'textScore' } })
+      .skip(skip)
+      .limit(limitValue)
+      .toArray()
+
+    const result = recipes.map((recipe) => normalizeId(recipe))
+
+    res.status(200).json(result)
+  }
+)
 
 /**
  * GET /api/recipes/<id>/media
@@ -67,10 +96,7 @@ recipeRouter.get(
       { $limit: limitValue }
     ]).toArray()
 
-    const feed = recipes.map((recipe): RecipeResponseBody => {
-      const { _id, ...rest } = recipe
-      return { id: _id.toHexString(), ...rest }
-    })
+    const feed = recipes.map((recipe) => normalizeId(recipe))
 
     res.status(200).json(feed)
   }
@@ -97,7 +123,7 @@ recipeRouter.post(
 
     const result = await mongodb.recipes.insertOne(body)
     if (!result.acknowledged) { throw new DatabaseError('Failed to create recipe') }
-    const recipe: RecipeResponseBody = { ...body, id: result.insertedId.toHexString() }
+    const recipe = normalizeId(body, result.insertedId)
 
     await mongodb.uploadRecipeImage(imageFile, recipe.id)
     if (videoFile) {
@@ -139,8 +165,7 @@ recipeRouter.put(
     const result = await mongodb.recipes.findOneAndReplace({ _id: new ObjectId(req.params.recipeId) }, body, { returnDocument: 'after' })
     if (!result) { throw new DatabaseError('Failed to replace recipe') }
 
-    const { _id, ...modifiedData } = result
-    const recipe: RecipeResponseBody = Object.assign(modifiedData, { id: _id.toHexString() })
+    const recipe = normalizeId(result)
 
     await handleRecipeMedia(req)
 
@@ -165,8 +190,7 @@ recipeRouter.patch(
     const result = await mongodb.recipes.findOneAndUpdate({ _id: new ObjectId(req.params.recipeId) }, { $set: body }, { returnDocument: 'after' })
     if (!result) { throw new DatabaseError('Failed to modify recipe') }
 
-    const { _id, ...modifiedData } = result
-    const recipe: RecipeResponseBody = Object.assign(modifiedData, { id: _id.toHexString() })
+    const recipe = normalizeId(result)
 
     await handleRecipeMedia(req)
 

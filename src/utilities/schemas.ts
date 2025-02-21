@@ -50,3 +50,11 @@ export const RecipeFeedQuerySchema = z.object({
     .transform((val) => val !== undefined ? String(val) : undefined),
   sortBy: z.enum(['date', 'popularity']).optional()
 })
+
+export const SearchQuerySchema = z.object({
+  q: z.string().min(1).max(100),
+  limit: z.coerce.number().int().nonnegative().max(100).optional()
+    .transform((val) => val !== undefined ? String(val) : undefined),
+  page: z.coerce.number().int().nonnegative().optional()
+    .transform((val) => val !== undefined ? String(val) : undefined)
+})
