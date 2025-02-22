@@ -107,6 +107,9 @@ db.createCollection(
   'recipes'
   // { validator: RecipeValidator }
 )
+db.recipes.createIndex({ title: 'text', description: 'text' })
+db.recipes.createIndex({ categories: 1 })
+
 
 const gridfsDb = db.getSiblingDB('gridfs')
 gridfsDb.users.files.createIndex({ "metadata.contextId": 1 })

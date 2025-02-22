@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { categories } from './utilities.js'
 
 type WithoutId<T> = Omit<T, 'id'>
 
@@ -33,7 +34,7 @@ export const RecipeBodySchema = z.object({
   ),
   portions: z.number().int().min(1),
   categories: z.array(
-    z.enum(['asian', 'baking', 'dessert', 'drink', 'main', 'italian', 'quick', 'soup', 'vegetarian'])
+    z.enum(categories)
   ).min(1).max(3),
   isPrivate: z.boolean()
 })

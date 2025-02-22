@@ -9,7 +9,7 @@ import {
   RecipeIdParamsSchema,
   SearchQuerySchema
 } from '../utilities/schemas.js'
-import { DatabaseError, handleRecipeMedia, HTTPError, normalizeId } from '../utilities/utilities.js'
+import { categories, DatabaseError, handleRecipeMedia, HTTPError, normalizeId } from '../utilities/utilities.js'
 import { validate } from '../middlewares/validate.js'
 import { withRecipe } from '../middlewares/withRecipe.js'
 
@@ -23,7 +23,7 @@ recipeRouter.use(express.json())
 
 /**
  * GET /api/recipes/search
- * Search recipes by text
+ * Find recipes by text
  * Query: Search query
  * Result: Recipe[]
  */
@@ -37,9 +37,21 @@ recipeRouter.get(
     const pageValue = parseInt(page, 10)
     const skip = (pageValue - 1) * limitValue
 
+    type Category = typeof categories[number]
+
+    let query, sort = {}, projection = {}
+    if (categories.includes(q as Category)) {
+      query = { categories: q as Category }
+    } else {
+      query = { $text: { $search: q } }
+      sort = { score: { $meta: 'textScore' } }
+      projection = { score: { $meta: 'textScore' } }
+    }
+
+    // TODO: Work on partial/fuzzy search
     const recipes = await mongodb.recipes
-      .find({ $text: { $search: q } }, { projection: { score: { $meta: 'textScore' } } })
-      .sort({ score: { $meta: 'textScore' } })
+      .find(query, { projection: projection })
+      .sort(sort)
       .skip(skip)
       .limit(limitValue)
       .toArray()

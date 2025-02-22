@@ -5,6 +5,8 @@ import { Recipe, RecipeResponseBody, User, UserResponseBody } from './schemas.js
 
 const mongodb = new MongoDBConnector()
 
+export const categories = ['asian', 'baking', 'dessert', 'drink', 'main', 'italian', 'quick', 'soup', 'vegetarian'] as const
+
 export class MiddlewareChainError extends Error {
   constructor(message: string) { super(message) }
 }
