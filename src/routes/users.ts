@@ -61,6 +61,27 @@ userRouter.get(
 )
 
 /**
+ * GET /api/users/<id>/recipes
+ * Get all recipes created by this user
+ * Parameters: userId
+ * Result: Recipe[]
+ * NOTE: Will only return private recipes if authentication is provided
+ */
+userRouter.get(
+  '/:userId/recipes',
+  validate({ params: UserIdParamsSchema }),
+  withUser,
+  async (req, res) => {
+    const recipes = await mongodb.recipes.find({ creatorId: req.user!.id }).toArray()
+    const result = recipes
+      .filter((recipe) => !(recipe.isPrivate && (!req.userToken || req.user!.id !== recipe.creatorId)))
+      .map((recipe) => normalizeId(recipe))
+
+    res.status(200).json(result)
+  }
+)
+
+/**
  * GET /api/users/<id>
  * Get user data by id
  * Parameters: userId

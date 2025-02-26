@@ -109,6 +109,7 @@ db.createCollection(
 )
 db.recipes.createIndex({ title: 'text', description: 'text' })
 db.recipes.createIndex({ categories: 1 })
+db.recipes.createIndex({ creatorId: 1 })
 
 
 const gridfsDb = db.getSiblingDB('gridfs')
