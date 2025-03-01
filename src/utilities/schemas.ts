@@ -3,9 +3,9 @@ import { categories } from './utilities.js'
 
 type WithoutId<T> = Omit<T, 'id'>
 
-export const ObjectIdSchema = z.string().regex(/^[a-fA-F0-9]{24}$/, '\'ObjectId\' must be a valid 24-character hexadecimal string')
+export const ObjectIdSchema = z.string().regex(/^[a-fA-F0-9]{24}$/, '\'ObjectId\' must be a 24-character hexadecimal string')
 
-export const UserIdParamsSchema = z.object({ userId: ObjectIdSchema })
+export const UserIdParamsSchema = z.object({ userId: z.union([z.literal('me'), ObjectIdSchema]) })
 export const RecipeIdParamsSchema = z.object({ recipeId: ObjectIdSchema })
 
 export const UserBodySchema = z.object({

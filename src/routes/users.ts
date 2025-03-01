@@ -69,7 +69,6 @@ userRouter.get(
  */
 userRouter.get(
   '/:userId/recipes',
-  validate({ params: UserIdParamsSchema }),
   withUser,
   async (req, res) => {
     const recipes = await mongodb.recipes.find({ creatorId: req.user!.id }).toArray()
@@ -89,7 +88,6 @@ userRouter.get(
  */
 userRouter.get(
   '/:userId',
-  validate({ params: UserIdParamsSchema }),
   withUser,
   (req, res) => {
     res.status(200).json(req.user!)
@@ -104,12 +102,12 @@ userRouter.get(
 userRouter.put(
   '/:userId',
   withUser,
-  validate({ params: UserIdParamsSchema, body: UserBodySchema }),
+  validate({ body: UserBodySchema }),
   upload.single('avatar'),
   async (req, res) => {
     const { id, ...body } = req.body
 
-    const result = await mongodb.users.findOneAndReplace({ _id: new ObjectId(req.params.userId) }, body, { returnDocument: 'after' })
+    const result = await mongodb.users.findOneAndReplace({ _id: new ObjectId(req.user!.id) }, body, { returnDocument: 'after' })
     if (!result) { throw new DatabaseError('Failed to replace user') }
 
     const user = normalizeId(result)
@@ -128,17 +126,17 @@ userRouter.put(
 userRouter.patch(
   '/:userId',
   withUser,
-  validate({ params: UserIdParamsSchema, body: UserBodySchema }),
+  validate({ body: UserBodySchema.partial() }),
   upload.single('avatar'),
   async (req, res) => {
     const { id, ...body } = req.body
 
-    const result = await mongodb.users.findOneAndUpdate({ _id: new ObjectId(req.params.userId) }, { $set: body }, { returnDocument: 'after' })
+    const result = await mongodb.users.findOneAndUpdate({ _id: new ObjectId(req.user!.id) }, { $set: body }, { returnDocument: 'after' })
     if (!result) { throw new DatabaseError('Failed to modify user') }
 
     const user = normalizeId(result)
 
-    if (req.file) { await mongodb.uploadUserAvatar(req.file, req.params.userId) }
+    if (req.file) { await mongodb.uploadUserAvatar(req.file, req.user!.id) }
 
     res.status(200).json(user)
   }
@@ -152,12 +150,11 @@ userRouter.patch(
 userRouter.delete(
   '/:userId',
   withUser,
-  validate({ params: UserIdParamsSchema }),
   async (req, res) => {
-    const result = await mongodb.users.deleteOne({ _id: new ObjectId(req.params.userId) })
+    const result = await mongodb.users.deleteOne({ _id: new ObjectId(req.user!.id) })
     if (!result.acknowledged) { throw new DatabaseError('Delete was not acknowledged') }
 
-    const avatarFile = await mongodb.avatarStorage.find({ metadata: { userId: req.params.userId } }).next()
+    const avatarFile = await mongodb.avatarStorage.find({ metadata: { userId: req.user!.id } }).next()
     if (avatarFile) { await mongodb.avatarStorage.delete(avatarFile._id) }
 
     res.status(204).end()

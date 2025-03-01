@@ -19,7 +19,7 @@ const getUser: RequestHandler<{ userId?: string }> = async (req, _res, next) => 
   if (req.userToken === undefined) { throw new MiddlewareChainError('\'withUser\' depends on \'authenticate\' middleware') }
   if (!req.isValidated) { throw new MiddlewareChainError('\'withUser\' depends on \'validate\' middleware') }
 
-  const userId = req.params.userId ?? req.userToken?.id
+  const userId = req.params.userId === 'me' ? req.userToken?.id : req.params.userId ?? req.userToken?.id
   if (!userId) { throw new HTTPError(400, 'Missing request parameter or authentication') }
 
   const user = await mongodb.users.findOne({ _id: new ObjectId(userId) })
