@@ -35,11 +35,51 @@ userRouter.get(
   }
 )
 
+/**
+ * GET /users/<id>/shopping-list
+ * Get a users shopping list and calculated total ingredients
+ * Result: {
+ *   shoppingList: { id: string, title: string, portions: int }[]
+ *   ingredients: { name: string, amount: float | null }[]
+ * }
+ */
 userRouter.get(
-  '/me',
+  '/:userId/shopping-list',
   withUser,
-  (req, res) => {
-    res.status(200).json(req.user!)
+  async (req, res) => {
+    const recipeIds = Object.keys(req.user!.shoppingList).map((id) => new ObjectId(id))
+
+    const recipes = await mongodb.recipes.find({ _id: { $in: recipeIds } }).toArray()
+
+    const recipesResult = recipes.map((recipe) => {
+      const { id, title } = normalizeId(recipe)
+      return { id, title, portions: req.user!.shoppingList[recipe._id.toHexString()] }
+    })
+    const allIngredients = recipes.map((recipe) => Object.fromEntries(
+      Object.entries(recipe.ingredients)
+        .map(([name, amount]) => {
+          const portionsNeeded = req.user!.shoppingList[recipe._id.toHexString()]
+          return [name, amount ? amount / recipe.portions * portionsNeeded : null]
+        })
+    ))
+    const { ingredientSums, nullIngredientsSet } = allIngredients.reduce((acc, ingredients) => {
+      Object.entries(ingredients).forEach(([key, value]) => {
+        if (value === null) {
+          acc.nullIngredientsSet.add(key)
+        } else {
+          acc.ingredientSums[key] = (acc.ingredientSums[key] || 0) + value
+        }
+      })
+      return acc
+    }, { ingredientSums: {} as Record<string, number>, nullIngredientsSet: new Set<string>() })
+    const ingredientsResult = [
+      ...Object.entries(ingredientSums).map(([name, amount]) => ({ name: name, amount: amount })),
+      ...Array.from(nullIngredientsSet).map((name) => ({ name: name, amount: null }))
+    ]
+
+    const result = { shoppingList: recipesResult, ingredients: ingredientsResult }
+
+    res.status(200).json(result)
   }
 )
 
