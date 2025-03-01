@@ -4,7 +4,7 @@ import multer from 'multer'
 import { DatabaseError, normalizeId } from '../utilities/utilities.js'
 import { MongoDBConnector } from '../utilities/mongodb.js'
 import { ObjectId } from 'mongodb'
-import { UserBodySchema, UserIdParamsSchema } from '../utilities/schemas.js'
+import { UserBodySchema } from '../utilities/schemas.js'
 import { validate } from '../middlewares/validate.js'
 import { withUser } from '../middlewares/withUser.js'
 
