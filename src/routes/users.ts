@@ -16,25 +16,8 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 *
 const userRouter = express.Router()
 userRouter.use(express.json())
 
+// TODO: Add user search?
 
-// TODO: Improve search with query parameters
-/* userRouter.get(
-  '/search/:query',
-  (req, res) => {
-    function escapeRegex(text: string) {
-      return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
-    }
-    async function queryAllUsers() {
-      return mongodb.users
-        .find({ username: { $regex: escapeRegex(req.params.query), $options: 'i' } })
-        .project({ _id: 0, username: 1 })
-        .toArray()
-    }
-    queryAllUsers()
-      .then((users) => res.json(users))
-      .catch((error: DatabaseError | Error) => errorResponse(res, error))
-  }
-) */
 userRouter.get(
   '/:userId/avatar',
   withUser,

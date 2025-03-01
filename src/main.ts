@@ -6,13 +6,11 @@ import userRouter from './routes/users.js'
 import { MongoDBConnector } from './utilities/mongodb.js'
 import { errorHandler } from './middlewares/errorHandler.js'
 
-// console.log('Happy developing ✨')
-
 const mongodb = new MongoDBConnector()
 await mongodb.ready
 
 const app = express()
-app.use(morgan('combined'))
+app.use(morgan('dev'))
 
 app.use('/', rootRouter)
 app.use('/api/users', userRouter)

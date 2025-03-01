@@ -131,15 +131,16 @@ recipeRouter.post(
     const imageFile = files?.image
     const videoFile = files?.video
 
-    if (!imageFile) { throw new HTTPError(400, 'Image is required') }
-
     const result = await mongodb.recipes.insertOne(body)
     if (!result.acknowledged) { throw new DatabaseError('Failed to create recipe') }
     const recipe = normalizeId(body, result.insertedId)
 
-    await mongodb.uploadRecipeImage(imageFile, recipe.id)
     if (videoFile) {
       await mongodb.uploadRecipeVideo(videoFile, recipe.id)
+    } else if (imageFile) {
+      await mongodb.uploadRecipeImage(imageFile, recipe.id)
+    } else {
+      throw new HTTPError(400, 'A media file is required')
     }
 
     res.status(201).json(recipe)

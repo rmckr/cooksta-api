@@ -82,6 +82,7 @@ rootRouter.post(
  */
 rootRouter.post(
   '/refresh',
+  express.text(),
   validate({ body: RefreshTokenBodySchema }),
   async (req, res) => {
     const refreshToken = req.body.refreshToken
