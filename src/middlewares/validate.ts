@@ -1,7 +1,7 @@
-import { RequestHandler } from 'express'
+import { HTTPError } from '../utilities/errors.js'
 import { IRoute } from 'express-serve-static-core'
+import { RequestHandler } from 'express'
 import { z, ZodSchema } from 'zod'
-import { HTTPError } from '../utilities/utilities.js'
 
 export function validate<
   TParams extends ZodSchema,

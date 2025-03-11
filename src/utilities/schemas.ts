@@ -1,5 +1,5 @@
-import { z } from 'zod'
 import { categories } from './utilities.js'
+import { z } from 'zod'
 
 type WithoutId<T> = Omit<T, 'id'>
 

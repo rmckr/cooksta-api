@@ -1,5 +1,5 @@
+import { DatabaseError, HTTPError } from '../utilities/errors.js'
 import { ErrorRequestHandler } from 'express'
-import { DatabaseError, HTTPError } from '../utilities/utilities.js'
 import { MongoError } from 'mongodb'
 
 export const errorHandler: ErrorRequestHandler = (err, _, res, next) => {

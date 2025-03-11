@@ -1,11 +1,12 @@
 import bcrypt from 'bcrypt'
 import express from 'express'
+import { DatabaseError, HTTPError, InvalidRefreshTokenError } from '../utilities/errors.js'
 import { InsertOneResult, UpdateResult } from 'mongodb'
 import { MongoDBConnector } from '../utilities/mongodb.js'
 import { RefreshTokenBodySchema, RegisterLoginBodySchema, User } from '../utilities/schemas.js'
-import { DatabaseError, HTTPError, InvalidRefreshTokenError, normalizeId } from '../utilities/utilities.js'
-import { validate } from '../middlewares/validate.js'
 import { generateAccessToken, generateRefreshToken, UserJWT, verifyRefreshToken } from '../utilities/jwt.js'
+import { normalizeId } from '../utilities/utilities.js'
+import { validate } from '../middlewares/validate.js'
 
 const mongodb = new MongoDBConnector()
 await mongodb.ready
@@ -82,7 +83,6 @@ rootRouter.post(
  */
 rootRouter.post(
   '/refresh',
-  express.text(),
   validate({ body: RefreshTokenBodySchema }),
   async (req, res) => {
     const refreshToken = req.body.refreshToken

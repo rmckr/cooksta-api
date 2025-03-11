@@ -1,10 +1,12 @@
+import bcrypt from 'bcrypt'
 import express from 'express'
 import fs from 'fs'
 import multer from 'multer'
-import { DatabaseError, normalizeId } from '../utilities/utilities.js'
+import { DatabaseError } from '../utilities/errors.js'
 import { MongoDBConnector } from '../utilities/mongodb.js'
 import { ObjectId } from 'mongodb'
 import { UserBodySchema } from '../utilities/schemas.js'
+import { normalizeId } from '../utilities/utilities.js'
 import { validate } from '../middlewares/validate.js'
 import { withUser } from '../middlewares/withUser.js'
 
@@ -32,6 +34,15 @@ userRouter.get(
       stream = fs.createReadStream('./data/default.png')
     }
     stream.pipe(res.status(200))
+  }
+)
+userRouter.put(
+  '/:userId/avatar',
+  withUser,
+  upload.single('avatar'),
+  async (req, res) => {
+    if (req.file) { await mongodb.uploadUserAvatar(req.file, req.user!.id) }
+    res.status(200).end()
   }
 )
 
@@ -126,16 +137,17 @@ userRouter.put(
   '/:userId',
   withUser,
   validate({ body: UserBodySchema }),
-  upload.single('avatar'),
   async (req, res) => {
     const { id, ...body } = req.body
+
+    if (body.password) {
+      body.password = await bcrypt.hash(body.password, 12)
+    }
 
     const result = await mongodb.users.findOneAndReplace({ _id: new ObjectId(req.user!.id) }, body, { returnDocument: 'after' })
     if (!result) { throw new DatabaseError('Failed to replace user') }
 
     const user = normalizeId(result)
-
-    if (req.file) { await mongodb.uploadUserAvatar(req.file, user.id) }
 
     res.status(200).setHeader('Location', `/api/user/${user.id}`).json(user.id)
   }
@@ -150,16 +162,17 @@ userRouter.patch(
   '/:userId',
   withUser,
   validate({ body: UserBodySchema.partial() }),
-  upload.single('avatar'),
   async (req, res) => {
     const { id, ...body } = req.body
+
+    if (body.password) {
+      body.password = await bcrypt.hash(body.password, 12)
+    }
 
     const result = await mongodb.users.findOneAndUpdate({ _id: new ObjectId(req.user!.id) }, { $set: body }, { returnDocument: 'after' })
     if (!result) { throw new DatabaseError('Failed to modify user') }
 
     const user = normalizeId(result)
-
-    if (req.file) { await mongodb.uploadUserAvatar(req.file, req.user!.id) }
 
     res.status(200).json(user)
   }

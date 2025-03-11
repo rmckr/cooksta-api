@@ -1,4 +1,4 @@
-import { InvalidAccessTokenError, MissingAccessTokenError } from '../utilities/utilities.js'
+import { InvalidAccessTokenError, MissingAccessTokenError } from '../utilities/errors.js'
 import { RequestHandler } from 'express'
 import { verifyAccessToken } from '../utilities/jwt.js'
 

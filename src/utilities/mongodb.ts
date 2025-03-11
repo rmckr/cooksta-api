@@ -1,6 +1,7 @@
 import ms from 'ms'
 import sharp from 'sharp'
 import { Db, GridFSBucket, MongoClient } from 'mongodb'
+import { HTTPError } from './errors.js'
 import { REFRESH_TOKEN_EXPIRATION } from './jwt.js'
 import { Recipe, User } from './schemas.js'
 
@@ -47,7 +48,9 @@ export class MongoDBConnector {
 
   private async _uploadFile(bucket: GridFSBucket, file: Express.Multer.File, filenamePrefix: 'avatar' | 'image' | 'video', contextId: string) {
     if (!file) { throw new Error('No file provided for upload') }
-    if (!['/image', '/video'].includes(file.mimetype)) { throw new Error('Invalid file type') }
+    if (!(file.mimetype.includes('image/') || file.mimetype.includes('video/'))) {
+      throw new HTTPError(400, 'Invalid file type')
+    }
 
     const filename = filenamePrefix + '-' + contextId
     const existingFile = await bucket.find({ filename: filename }).next()
@@ -59,7 +62,8 @@ export class MongoDBConnector {
     uploadStream.on('error', () => {
       throw new Error('Failed to upload file')
     })
-    uploadStream.end(filenamePrefix === 'avatar' ? await sharp(file.buffer).resize(128, 128).toBuffer() : file.buffer)
+    const buffer = filenamePrefix === 'avatar' ? await sharp(file.buffer).resize(128, 128).toBuffer() : file.buffer
+    uploadStream.end(buffer)
   }
 
   get users() {

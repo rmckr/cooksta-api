@@ -1,26 +1,27 @@
-import {
-  HTTPError,
-  MiddlewareChainError,
-  MissingAccessTokenError,
-  NoPermissionError,
-  normalizeId
-} from '../utilities/utilities.js'
+import { HTTPError, MiddlewareChainError, MissingAccessTokenError, NoPermissionError } from '../utilities/errors.js'
 import { MongoDBConnector } from '../utilities/mongodb.js'
 import { ObjectId } from 'mongodb'
 import { RequestHandler, Router } from 'express'
 import { UserIdParamsSchema } from '../utilities/schemas.js'
 import { authenticate } from './authenticate.js'
+import { normalizeId } from '../utilities/utilities.js'
 import { validate } from './validate.js'
 
 const mongodb = new MongoDBConnector()
 await mongodb.ready
 
-const getUser: RequestHandler<{ userId?: string }> = async (req, _res, next) => {
+const getUser: RequestHandler<{ userId: string }> = async (req, _res, next) => {
   if (req.userToken === undefined) { throw new MiddlewareChainError('\'withUser\' depends on \'authenticate\' middleware') }
   if (!req.isValidated) { throw new MiddlewareChainError('\'withUser\' depends on \'validate\' middleware') }
 
-  const userId = req.params.userId === 'me' ? req.userToken?.id : req.params.userId ?? req.userToken?.id
-  if (!userId) { throw new HTTPError(400, 'Missing request parameter or authentication') }
+  let userId
+  if (req.params.userId === 'me') {
+    if (!req.userToken) { throw new MissingAccessTokenError() }
+    userId = req.userToken.id
+  } else {
+    if (!req.params.userId) { throw new HTTPError(400, 'Missing request parameter') }
+    userId = req.params.userId
+  }
 
   const user = await mongodb.users.findOne({ _id: new ObjectId(userId) })
 
@@ -28,7 +29,8 @@ const getUser: RequestHandler<{ userId?: string }> = async (req, _res, next) => 
 
   req.user = normalizeId(user)
 
-  if (req.user.isPrivate) {
+  // TODO: This is really hacky. Think about a better solution.
+  if (req.user.isPrivate && !req.path.includes('/avatar')) {
     if (!req.userToken) { throw new MissingAccessTokenError() }
     if (req.userToken.id !== req.user.id) { throw new NoPermissionError() }
   }
