@@ -2,24 +2,21 @@ import { HTTPError, MiddlewareChainError, MissingAccessTokenError, NoPermissionE
 import { MongoDBConnector } from '../utilities/mongodb.js'
 import { ObjectId } from 'mongodb'
 import { RequestHandler, Router } from 'express'
-import { UserIdParamsSchema } from '../utilities/schemas.js'
 import { authenticate } from './authenticate.js'
 import { normalizeId } from '../utilities/utilities.js'
-import { validate } from './validate.js'
 
 const mongodb = new MongoDBConnector()
 await mongodb.ready
 
-const getUser: RequestHandler<{ userId: string }> = async (req, _res, next) => {
-  if (req.userToken === undefined) { throw new MiddlewareChainError('\'withUser\' depends on \'authenticate\' middleware') }
-  if (!req.isValidated) { throw new MiddlewareChainError('\'withUser\' depends on \'validate\' middleware') }
+const getUser: RequestHandler<{ userId?: string }> = async (req, _res, next) => {
+  if (req.userToken === undefined) { throw new MiddlewareChainError('\'getUser\' depends on \'authenticate\' middleware') }
 
   let userId
-  if (req.params.userId === 'me') {
+  if (req.params.userId === 'me' || /\/me(\/|$)/.test(req.path)) {
     if (!req.userToken) { throw new MissingAccessTokenError() }
     userId = req.userToken.id
   } else {
-    if (!req.params.userId) { throw new HTTPError(400, 'Missing request parameter') }
+    if (!req.params.userId) { throw new HTTPError(400, 'Missing "userId" request parameter') }
     userId = req.params.userId
   }
 
@@ -29,8 +26,7 @@ const getUser: RequestHandler<{ userId: string }> = async (req, _res, next) => {
 
   req.user = normalizeId(user)
 
-  // TODO: This is really hacky. Think about a better solution.
-  if (req.user.isPrivate && !req.path.includes('/avatar')) {
+  if (req.user.isPrivate || req.method !== 'GET') {
     if (!req.userToken) { throw new MissingAccessTokenError() }
     if (req.userToken.id !== req.user.id) { throw new NoPermissionError() }
   }
@@ -45,4 +41,4 @@ const getUser: RequestHandler<{ userId: string }> = async (req, _res, next) => {
  * 3. If user is private, check for authorization
  * @description `req.user` can safely be considered as defined after this.
  */
-export const withUser = Router({ mergeParams: true }).use(authenticate, validate({ params: UserIdParamsSchema }), getUser)
+export const withUser = Router({ mergeParams: true }).use(authenticate, getUser)

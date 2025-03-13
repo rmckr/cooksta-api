@@ -23,6 +23,11 @@ export const UserBodySchema = z.object({
 export type User = WithoutId<z.infer<typeof UserBodySchema>>
 export type UserResponseBody = User & { id: z.infer<typeof ObjectIdSchema> }
 
+export const ShoppingListItemBodySchema = z.object({
+  id: ObjectIdSchema,
+  portions: z.number().int().min(1)
+})
+
 export const RecipeBodySchema = z.object({
   id: ObjectIdSchema.optional(),
   creatorId: ObjectIdSchema,

@@ -15,7 +15,7 @@ const getRecipe: RequestHandler<{ recipeId?: string }> = async (req, _res, next)
   if (!req.isValidated) { throw new MiddlewareChainError('\'withRecipe\' depends on \'validate\' middleware') }
 
   // This shouldn't ever happen if `validate` is properly used before, so this is mostly just type-guarding...
-  if (!req.params.recipeId) { throw new HTTPError(400, 'Missing request parameter') }
+  if (!req.params.recipeId) { throw new HTTPError(400, 'Missing "recipeId" request parameter') }
 
   const recipe = await mongodb.recipes.findOne({ _id: new ObjectId(req.params.recipeId) })
 
@@ -23,7 +23,7 @@ const getRecipe: RequestHandler<{ recipeId?: string }> = async (req, _res, next)
 
   req.recipe = normalizeId(recipe)
 
-  if (req.recipe.isPrivate) {
+  if (req.recipe.isPrivate || req.method !== 'GET') {
     if (!req.userToken) { throw new MissingAccessTokenError() }
     if (req.userToken.id !== req.recipe.creatorId) { throw new NoPermissionError() }
   }

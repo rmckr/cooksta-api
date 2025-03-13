@@ -3,8 +3,8 @@ import multer from 'multer'
 import { DatabaseError, HTTPError } from '../utilities/errors.js'
 import { MongoDBConnector } from '../utilities/mongodb.js'
 import { ObjectId, WithId } from 'mongodb'
-import { Recipe, RecipeBodySchema, RecipeFeedQuerySchema, RecipeIdParamsSchema, SearchQuerySchema } from '../utilities/schemas.js'
-import { categories, handleRecipeMedia, normalizeId } from '../utilities/utilities.js'
+import { Recipe, RecipeBodySchema, RecipeFeedQuerySchema, SearchQuerySchema } from '../utilities/schemas.js'
+import { categories, normalizeId } from '../utilities/utilities.js'
 import { validate } from '../middlewares/validate.js'
 import { withRecipe } from '../middlewares/withRecipe.js'
 
@@ -19,7 +19,7 @@ recipeRouter.use(express.json())
 /**
  * GET /api/recipes/search
  * Find recipes by text
- * Query: Search query
+ * Query: ?q=query&limit=10&page=1
  * Result: Recipe[]
  */
 recipeRouter.get(
@@ -34,19 +34,21 @@ recipeRouter.get(
 
     type Category = typeof categories[number]
 
-    let query, sort = {}, projection = {}
+    let query
     if (categories.includes(q as Category)) {
       query = { categories: q as Category }
     } else {
-      query = { $text: { $search: q } }
-      sort = { score: { $meta: 'textScore' } }
-      projection = { score: { $meta: 'textScore' } }
+      const regex = new RegExp(q, 'i')
+      query = {
+        $or: [
+          { title: { $regex: regex } },
+          { description: { $regex: regex } }
+        ]
+      }
     }
 
-    // TODO: Work on partial/fuzzy search
     const recipes = await mongodb.recipes
-      .find(query, { projection: projection })
-      .sort(sort)
+      .find(query)
       .skip(skip)
       .limit(limitValue)
       .toArray()
@@ -58,9 +60,8 @@ recipeRouter.get(
 )
 
 /**
- * GET /api/recipes/<id>/media
+ * GET /api/recipes/<recipeId>/media
  * Get recipe media by recipe id.
- * Parameters: recipeId
  * Result: Media binary data
  */
 recipeRouter.get(
@@ -73,6 +74,30 @@ recipeRouter.get(
     const stream = mongodb.recipeStorage.openDownloadStream(mediaFile._id)
       .on('error', () => { throw new DatabaseError('Failed to download file') })
     stream.pipe(res.status(200))
+  }
+)
+/**
+ * PUT /api/recipes/<recipeId>/media
+ * Update recipe media. Prioritizes video over image, only one file possible.
+ */
+recipeRouter.put(
+  '/:recipeId/media',
+  withRecipe,
+  upload.fields([{ name: 'image', maxCount: 1 }, { name: 'video', maxCount: 1 }]),
+  async (req, res) => {
+    const files = req.files as unknown as { image?: Express.Multer.File, video?: Express.Multer.File } | undefined
+    const videoFile = files?.video
+    const imageFile = files?.image
+
+    if (videoFile) {
+      await mongodb.uploadRecipeVideo(videoFile, req.recipe!.id)
+    } else if (imageFile) {
+      await mongodb.uploadRecipeImage(imageFile, req.recipe!.id)
+    } else {
+      throw new HTTPError(400, 'A media file is required')
+    }
+
+    res.status(204).end()
   }
 )
 
@@ -118,34 +143,20 @@ recipeRouter.get(
 recipeRouter.post(
   '/',
   validate({ body: RecipeBodySchema }),
-  upload.fields([{ name: 'image', maxCount: 1 }, { name: 'video', maxCount: 1 }]),
   async (req, res) => {
     const { id, ...body } = req.body
-
-    const files = req.files as unknown as { image?: Express.Multer.File, video?: Express.Multer.File } | undefined
-    const imageFile = files?.image
-    const videoFile = files?.video
 
     const result = await mongodb.recipes.insertOne(body)
     if (!result.acknowledged) { throw new DatabaseError('Failed to create recipe') }
     const recipe = normalizeId(body, result.insertedId)
-
-    if (videoFile) {
-      await mongodb.uploadRecipeVideo(videoFile, recipe.id)
-    } else if (imageFile) {
-      await mongodb.uploadRecipeImage(imageFile, recipe.id)
-    } else {
-      throw new HTTPError(400, 'A media file is required')
-    }
 
     res.status(201).json(recipe)
   }
 )
 
 /**
- * GET /api/recipes/<id>
+ * GET /api/recipes/<recipeId>
  * Get recipe data by id
- * Parameters: recipeId
  * Result: Recipe
  */
 recipeRouter.get(
@@ -156,42 +167,36 @@ recipeRouter.get(
   }
 )
 /**
- * PUT /api/recipes/<id>
+ * PUT /api/recipes/<recipeId>
  * Replace an entire recipe
- * Parameters: recipeId
  * Body: Recipe (with or without id, id is ignored)
- * Result: Recipe ID
+ * Result: Recipe
  */
 recipeRouter.put(
   '/:recipeId',
   withRecipe,
-  validate({ params: RecipeIdParamsSchema, body: RecipeBodySchema }),
-  upload.fields([{ name: 'image', maxCount: 1 }, { name: 'video', maxCount: 1 }]),
+  validate({ body: RecipeBodySchema }),
   async (req, res) => {
     const { id, ...body } = req.body
 
-    const result = await mongodb.recipes.findOneAndReplace({ _id: new ObjectId(req.params.recipeId) }, body, { returnDocument: 'after' })
+    const result = await mongodb.recipes.findOneAndReplace({ _id: new ObjectId(req.recipe!.id) }, body, { returnDocument: 'after' })
     if (!result) { throw new DatabaseError('Failed to replace recipe') }
 
     const recipe = normalizeId(result)
 
-    await handleRecipeMedia(req)
-
-    res.status(200).setHeader('Location', `/api/recipe/${recipe.id}`).json(recipe.id)
+    res.status(200).setHeader('Location', `/api/recipe/${recipe.id}`).json(recipe)
   }
 )
 /**
- * PATCH /api/recipes/<id>
+ * PATCH /api/recipes/<recipeId>
  * Modifies a recipe partially
- * Parameters: recipeId
  * Body: Recipe (all fields optional, id is ignored)
  * Result: Recipe
  */
 recipeRouter.patch(
   '/:recipeId',
   withRecipe,
-  validate({ params: RecipeIdParamsSchema, body: RecipeBodySchema }),
-  upload.fields([{ name: 'image', maxCount: 1 }, { name: 'video', maxCount: 1 }]),
+  validate({ body: RecipeBodySchema }),
   async (req, res) => {
     const { id, ...body } = req.body
 
@@ -200,26 +205,21 @@ recipeRouter.patch(
 
     const recipe = normalizeId(result)
 
-    await handleRecipeMedia(req)
-
     res.status(200).json(recipe)
   }
 )
 /**
- * DELETE /api/recipes/<id>
+ * DELETE /api/recipes/<recipeId>
  * Deletes a recipe
- * Parameters: recipeId
- * Result: Status 204
  */
 recipeRouter.delete(
   '/:recipeId',
   withRecipe,
-  validate({ params: RecipeIdParamsSchema }),
   async (req, res) => {
-    const result = await mongodb.recipes.deleteOne({ _id: new ObjectId(req.params.recipeId) })
+    const result = await mongodb.recipes.deleteOne({ _id: new ObjectId(req.recipe!.id) })
     if (!result.acknowledged) { throw new DatabaseError('Failed to delete recipe') }
 
-    const files = mongodb.recipeStorage.find({ metadata: { contextId: req.params.recipeId } })
+    const files = mongodb.recipeStorage.find({ metadata: { contextId: req.recipe!.id } })
     for await (const file of files) { await mongodb.recipeStorage.delete(file._id) }
 
     res.status(204).end()

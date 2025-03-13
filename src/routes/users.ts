@@ -5,8 +5,13 @@ import multer from 'multer'
 import { DatabaseError } from '../utilities/errors.js'
 import { MongoDBConnector } from '../utilities/mongodb.js'
 import { ObjectId } from 'mongodb'
-import { UserBodySchema } from '../utilities/schemas.js'
-import { normalizeId } from '../utilities/utilities.js'
+import {
+  RecipeIdParamsSchema,
+  ShoppingListItemBodySchema,
+  UserBodySchema,
+  UserIdParamsSchema
+} from '../utilities/schemas.js'
+import { convertShoppingList, normalizeId } from '../utilities/utilities.js'
 import { validate } from '../middlewares/validate.js'
 import { withUser } from '../middlewares/withUser.js'
 
@@ -20,11 +25,17 @@ userRouter.use(express.json())
 
 // TODO: Add user search?
 
+/**
+ * GET /api/users/<userId>/avatar
+ * Gets a user avatar by id.
+ * Result: Binary data stream
+ */
 userRouter.get(
   '/:userId/avatar',
-  withUser,
+  // TODO: This should be withUser when Glide supports authentication
+  validate({ params: UserIdParamsSchema }),
   async (req, res) => {
-    const avatarFile = await mongodb.avatarStorage.find({ 'metadata.contextId': req.user!.id }).next()
+    const avatarFile = await mongodb.avatarStorage.find({ 'metadata.contextId': req.params.userId }).next()
     let stream
     if (avatarFile) {
       res.setHeader('Content-Type', avatarFile.metadata?.contentType as string)
@@ -36,36 +47,104 @@ userRouter.get(
     stream.pipe(res.status(200))
   }
 )
+/**
+ * PUT /api/users/me/avatar
+ * Updates the current users avatar
+ */
 userRouter.put(
-  '/:userId/avatar',
+  '/me/avatar',
   withUser,
   upload.single('avatar'),
   async (req, res) => {
     if (req.file) { await mongodb.uploadUserAvatar(req.file, req.user!.id) }
-    res.status(200).end()
+    res.status(204).end()
   }
 )
 
 /**
- * GET /users/<id>/shopping-list
+ * GET /api/users/me/shopping-list
  * Get a users shopping list and calculated total ingredients
- * Result: {
- *   shoppingList: { id: string, title: string, portions: int }[]
- *   ingredients: { name: string, amount: float | null }[]
- * }
+ * Result: { id: string, title: string, portions: int }[]
  */
 userRouter.get(
-  '/:userId/shopping-list',
+  '/me/shopping-list',
+  withUser,
+  async (req, res) => {
+    const result = await convertShoppingList(req.user!.shoppingList)
+
+    res.status(200).json(result)
+  }
+)
+/**
+ * POST /api/users/me/shopping-list/items
+ * Add an item to the shopping list. If the item already exists, sets the new amount.
+ * Body: { id: string, portions: int }
+ * Result: The new shopping list, see above for type
+ */
+userRouter.post(
+  '/me/shopping-list/items',
+  withUser,
+  validate({ body: ShoppingListItemBodySchema }),
+  async (req, res) => {
+    const shoppingList = req.user!.shoppingList
+    shoppingList[req.body.id] = req.body.portions
+
+    const updateResult = await mongodb.users.findOneAndUpdate({ _id: new ObjectId(req.user!.id) }, { $set: { shoppingList: shoppingList } }, { returnDocument: 'after' })
+    if (!updateResult) { throw new DatabaseError('Failed to modify shopping list') }
+
+    const result = await convertShoppingList(shoppingList)
+
+    res.status(200).json(result)
+  }
+)
+/**
+ * DELETE /api/users/me/shopping-list/items/<recipeId>
+ * Delete an item from the shopping list.
+ * Result: The new shopping list, see above for type
+ */
+userRouter.delete(
+  '/me/shopping-list/items/:recipeId',
+  withUser,
+  validate({ params: RecipeIdParamsSchema }),
+  async (req, res) => {
+    const shoppingList = req.user!.shoppingList
+    delete shoppingList[req.params.recipeId]
+
+    const updateResult = await mongodb.users.findOneAndUpdate({ _id: new ObjectId(req.user!.id) }, { $set: { shoppingList: shoppingList } }, { returnDocument: 'after' })
+    if (!updateResult) { throw new DatabaseError('Failed to modify shopping list') }
+
+    const result = await convertShoppingList(shoppingList)
+
+    res.status(200).json(result)
+  }
+)
+/**
+ * DELETE /api/users/me/shopping-list/items
+ * Delete all items from the shopping list.
+ */
+userRouter.delete(
+  '/me/shopping-list/items',
+  withUser,
+  async (req, res) => {
+    const updateResult = await mongodb.users.findOneAndUpdate({ _id: new ObjectId(req.user!.id) }, { $set: { shoppingList: {} } }, { returnDocument: 'after' })
+    if (!updateResult) { throw new DatabaseError('Failed to modify shopping list') }
+
+    res.status(204).end()
+  }
+)
+/**
+ * GET /api/users/me/shopping-list/ingredients
+ * Get the calculated total ingredients for the current users shopping list
+ * Result: { name: string, amount: float | null }[]
+ */
+userRouter.get(
+  '/me/shopping-list/ingredients',
   withUser,
   async (req, res) => {
     const recipeIds = Object.keys(req.user!.shoppingList).map((id) => new ObjectId(id))
 
     const recipes = await mongodb.recipes.find({ _id: { $in: recipeIds } }).toArray()
 
-    const recipesResult = recipes.map((recipe) => {
-      const { id, title } = normalizeId(recipe)
-      return { id, title, portions: req.user!.shoppingList[recipe._id.toHexString()] }
-    })
     const allIngredients = recipes.map((recipe) => Object.fromEntries(
       Object.entries(recipe.ingredients)
         .map(([name, amount]) => {
@@ -83,21 +162,18 @@ userRouter.get(
       })
       return acc
     }, { ingredientSums: {} as Record<string, number>, nullIngredientsSet: new Set<string>() })
-    const ingredientsResult = [
+    const result = [
       ...Object.entries(ingredientSums).map(([name, amount]) => ({ name: name, amount: amount })),
       ...Array.from(nullIngredientsSet).map((name) => ({ name: name, amount: null }))
     ]
-
-    const result = { shoppingList: recipesResult, ingredients: ingredientsResult }
 
     res.status(200).json(result)
   }
 )
 
 /**
- * GET /api/users/<id>/recipes
+ * GET /api/users/<userId>/recipes
  * Get all recipes created by this user
- * Parameters: userId
  * Result: Recipe[]
  * NOTE: Will only return private recipes if authentication is provided
  */
@@ -115,10 +191,9 @@ userRouter.get(
 )
 
 /**
- * GET /api/users/<id>
+ * GET /api/users/<userId>
  * Get user data by id
- * Parameters: userId
- * Body: none
+ * Result: User
  */
 userRouter.get(
   '/:userId',
@@ -128,10 +203,10 @@ userRouter.get(
   }
 )
 /**
- * PUT /api/users/<id>
+ * PUT /api/users/<userId>
  * Replace an entire user
- * Parameters: userId
  * Body: User (with or without id, id is ignored)
+ * Result: User
  */
 userRouter.put(
   '/:userId',
@@ -149,14 +224,14 @@ userRouter.put(
 
     const user = normalizeId(result)
 
-    res.status(200).setHeader('Location', `/api/user/${user.id}`).json(user.id)
+    res.status(200).setHeader('Location', `/api/user/${user.id}`).json(user)
   }
 )
 /**
- * PATCH /api/users/<id>
+ * PATCH /api/users/<userId>
  * Modifies a user partially
- * Parameters: userId
  * Body: User (all fields optional, id is ignored)
+ * Result: User
  */
 userRouter.patch(
   '/:userId',
@@ -178,10 +253,8 @@ userRouter.patch(
   }
 )
 /**
- * DELETE /api/users/<id>
+ * DELETE /api/users/<userId>
  * Deletes a user
- * Parameters: userId
- * Body: none
  */
 userRouter.delete(
   '/:userId',

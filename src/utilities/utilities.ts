@@ -1,9 +1,9 @@
 import { MongoDBConnector } from './mongodb.js'
 import { ObjectId, WithId } from 'mongodb'
 import { Recipe, RecipeResponseBody, User, UserResponseBody } from './schemas.js'
-import { Request } from 'express'
 
 const mongodb = new MongoDBConnector()
+await mongodb.ready
 
 export const categories = ['asian', 'baking', 'dessert', 'drink', 'main', 'italian', 'quick', 'soup', 'vegetarian'] as const
 
@@ -20,15 +20,12 @@ export function normalizeId<T extends WithId<Recipe> | WithId<User> | Recipe | U
   }
 }
 
-export async function handleRecipeMedia(req: Request<{ recipeId: string }>) {
-  const files = req.files as unknown as { image?: Express.Multer.File, video?: Express.Multer.File } | undefined
-  const imageFile = files?.image
-  const videoFile = files?.video
+export async function convertShoppingList(shoppingList: Record<string, number>) {
+  const recipeIds = Object.keys(shoppingList).map((id) => new ObjectId(id))
 
-  if (imageFile) {
-    await mongodb.uploadRecipeImage(imageFile, req.params.recipeId)
-  }
-  if (videoFile) {
-    await mongodb.uploadRecipeVideo(videoFile, req.params.recipeId)
-  }
+  const recipes = await mongodb.recipes.find({ _id: { $in: recipeIds } }).toArray()
+  return recipes.map((recipe) => {
+    const { id, title } = normalizeId(recipe)
+    return { id, title, portions: shoppingList[id] }
+  })
 }
