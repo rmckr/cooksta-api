@@ -62,7 +62,7 @@ export class MongoDBConnector {
     uploadStream.on('error', () => {
       throw new Error('Failed to upload file')
     })
-    const buffer = filenamePrefix === 'avatar' ? await sharp(file.buffer).resize(128, 128).toBuffer() : file.buffer
+    const buffer = filenamePrefix === 'avatar' ? await sharp(file.buffer).rotate().resize(128, 128).toBuffer() : file.buffer
     uploadStream.end(buffer)
   }
 
