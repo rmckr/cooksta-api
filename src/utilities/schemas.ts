@@ -30,7 +30,6 @@ export const ShoppingListItemBodySchema = z.object({
 
 export const RecipeBodySchema = z.object({
   id: ObjectIdSchema.optional(),
-  creatorId: ObjectIdSchema,
   title: z.string().min(3).max(100),
   description: z.string().min(1),
   ingredients: z.record(
@@ -43,7 +42,7 @@ export const RecipeBodySchema = z.object({
   ).min(1).max(3),
   isPrivate: z.boolean()
 })
-export type Recipe = WithoutId<z.infer<typeof RecipeBodySchema>>
+export type Recipe = WithoutId<z.infer<typeof RecipeBodySchema>> & { creatorId: string }
 export type RecipeResponseBody = Recipe & { id: z.infer<typeof ObjectIdSchema> }
 
 export const RegisterLoginBodySchema = UserBodySchema.pick({ username: true, password: true })

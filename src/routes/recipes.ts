@@ -7,6 +7,7 @@ import { Recipe, RecipeBodySchema, RecipeFeedQuerySchema, SearchQuerySchema } fr
 import { categories, normalizeId } from '../utilities/utilities.js'
 import { validate } from '../middlewares/validate.js'
 import { withRecipe } from '../middlewares/withRecipe.js'
+import { authenticate } from '../middlewares/authenticate.js'
 
 const mongodb = new MongoDBConnector()
 await mongodb.ready
@@ -85,9 +86,9 @@ recipeRouter.put(
   withRecipe,
   upload.fields([{ name: 'image', maxCount: 1 }, { name: 'video', maxCount: 1 }]),
   async (req, res) => {
-    const files = req.files as unknown as { image?: Express.Multer.File, video?: Express.Multer.File } | undefined
-    const videoFile = files?.video
-    const imageFile = files?.image
+    const files = req.files as unknown as { image?: Express.Multer.File[], video?: Express.Multer.File[] } | undefined
+    const videoFile = files?.video?.at(0)
+    const imageFile = files?.image?.at(0)
 
     if (videoFile) {
       await mongodb.uploadRecipeVideo(videoFile, req.recipe!.id)
@@ -142,13 +143,16 @@ recipeRouter.get(
  */
 recipeRouter.post(
   '/',
+  authenticate,
   validate({ body: RecipeBodySchema }),
   async (req, res) => {
     const { id, ...body } = req.body
 
-    const result = await mongodb.recipes.insertOne(body)
+    const recipeBody = Object.assign(body, { creatorId: req.userToken!.id })
+
+    const result = await mongodb.recipes.insertOne(recipeBody)
     if (!result.acknowledged) { throw new DatabaseError('Failed to create recipe') }
-    const recipe = normalizeId(body, result.insertedId)
+    const recipe = normalizeId(recipeBody, result.insertedId)
 
     res.status(201).json(recipe)
   }
@@ -179,7 +183,9 @@ recipeRouter.put(
   async (req, res) => {
     const { id, ...body } = req.body
 
-    const result = await mongodb.recipes.findOneAndReplace({ _id: new ObjectId(req.recipe!.id) }, body, { returnDocument: 'after' })
+    const recipeBody = Object.assign(body, { creatorId: req.user!.id })
+
+    const result = await mongodb.recipes.findOneAndReplace({ _id: new ObjectId(req.recipe!.id) }, recipeBody, { returnDocument: 'after' })
     if (!result) { throw new DatabaseError('Failed to replace recipe') }
 
     const recipe = normalizeId(result)
