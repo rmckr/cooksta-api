@@ -15,11 +15,11 @@ export function generateRefreshToken(payload: UserJWT) {
   return jwt.sign(payload, REFRESH_TOKEN_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRATION })
 }
 
-function verifyToken(token: string, secret: string) {
+function verifyToken(token: string, secret: string): UserJWT | null {
   try {
     const decodedToken = jwt.verify(token, secret)
     if (typeof decodedToken === 'object' && 'id' in decodedToken) {
-      return decodedToken as UserJWT
+      return { id: decodedToken.id as string }
     }
     return null
   } catch {
