@@ -6,6 +6,7 @@ import { DatabaseError } from '../utilities/errors.js'
 import { MongoDBConnector } from '../utilities/mongodb.js'
 import { ObjectId } from 'mongodb'
 import {
+  ObjectIdSchema,
   RecipeIdParamsSchema,
   ShoppingListItemBodySchema,
   UserBodySchema,
@@ -14,6 +15,7 @@ import {
 import { convertShoppingList, normalizeId } from '../utilities/utilities.js'
 import { validate } from '../middlewares/validate.js'
 import { withUser } from '../middlewares/withUser.js'
+import { z } from 'zod'
 
 const mongodb = new MongoDBConnector()
 await mongodb.ready
@@ -168,6 +170,63 @@ userRouter.get(
     ]
 
     res.status(200).json(result)
+  }
+)
+
+/**
+ * GET /api/me/saved
+ * Returns an array of the users saved posts
+ * Result: String[]
+ */
+userRouter.get(
+  '/me/saved',
+  withUser,
+  (req, res) => {
+    res.status(200).json(req.user!.favorites)
+  }
+)
+/**
+ * POST /api/users/me/saved/<recipeId>
+ * Saves a new recipe to the users favorites. Ignores duplicates.
+ * Returns the new saved posts.
+ * Result: String[]
+ */
+userRouter.post(
+  '/me/saved/:recipeId',
+  withUser,
+  validate({ params: z.object({ recipeId: ObjectIdSchema }) }),
+  async (req, res) => {
+    if (req.user!.favorites.includes(req.params.recipeId)) { return }
+
+    const newFavorites = req.user!.favorites
+    newFavorites.push(req.params.recipeId)
+
+    const result = await mongodb.users.findOneAndUpdate({ _id: new ObjectId(req.user!.id) }, { $set: { favorites: newFavorites } }, { returnDocument: 'after' })
+    if (!result) { throw new DatabaseError('Failed to modify user') }
+
+    res.status(200).json(newFavorites)
+  }
+)
+/**
+ * DELETE /api/users/me/saved/<recipeId>
+ * Remove a recipe from the users favorites. Ignores missing entries.
+ * Returns the new saved posts.
+ * Result: String[]
+ */
+userRouter.delete(
+  '/me/saved/:recipeId',
+  withUser,
+  validate({ params: z.object({ recipeId: ObjectIdSchema }) }),
+  async (req, res) => {
+    if (!req.user!.favorites.includes(req.params.recipeId)) { return }
+
+    const newFavorites = new Set(req.user!.favorites)
+    newFavorites.delete(req.params.recipeId)
+
+    const result = await mongodb.users.findOneAndUpdate({ _id: new ObjectId(req.user!.id) }, { $set: { favorites: Array.from(newFavorites) } }, { returnDocument: 'after' })
+    if (!result) { throw new DatabaseError('Failed to modify user') }
+
+    res.status(200).json(Array.from(newFavorites))
   }
 )
 
