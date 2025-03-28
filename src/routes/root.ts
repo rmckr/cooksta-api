@@ -119,9 +119,6 @@ rootRouter.post(
   async (req, res) => {
     const refreshToken = req.body.refreshToken
 
-    const userToken = verifyRefreshToken(refreshToken)
-    if (!userToken) { throw new InvalidRefreshTokenError() }
-
     await mongodb.refreshTokens.deleteOne({ token: refreshToken })
 
     res.status(200).json({ message: 'Logout successful' })

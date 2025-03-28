@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken'
 
 const ACCESS_TOKEN_SECRET = 'cooksta-access-token-secret'
 const REFRESH_TOKEN_SECRET = 'cooksta-refresh-token-secret'
-export const ACCESS_TOKEN_EXPIRATION = '1d'
+export const ACCESS_TOKEN_EXPIRATION = '30m'
 export const REFRESH_TOKEN_EXPIRATION = '30d'
 
 export type UserJWT = { id: string }
