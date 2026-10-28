@@ -1,16 +1,16 @@
 # Cooksta API
 
-A simple MongoDB and Express backend for [cooksta-app](https://gitlab.dit.htwk-leipzig.de/cooksta/cooksta-app).\
+A simple MongoDB and Express backend for [cooksta-app](https://github.com/rmckr/cooksta-app).\
 Supports various API endpoints defined in [openapi.yaml](openapi.yaml)
 
 ## Getting started
 
 Clone this repository:
 ```shell
-git clone https://gitlab.dit.htwk-leipzig.de/cooksta/cooksta-api.git
+git clone https://github.com/rmckr/cooksta-api.git
 cd cooksta-api
 ```
-Alternatively, use SSH to clone: `git@gitlab.dit.htwk-leipzig.de:cooksta/cooksta-api.git`.
+Alternatively, use SSH to clone: `git@github.com:rmckr/cooksta-api.git`.
 
 ---
 
